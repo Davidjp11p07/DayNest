@@ -9,4 +9,6 @@ public interface AutenticacionService {
     Usuario registrar(String nombre, String correo, char[] password, Rol rol);
     Usuario registrar(String nombre,String correo,char[] password,String telefono,boolean cliente,boolean propietario);
     Usuario login(String correo, char[] password);
+    /** Añade el perfil complementario sin retirar perfiles ni cambiar la identidad. */
+    Usuario activarPerfil(long usuarioId, Rol perfil);
 }

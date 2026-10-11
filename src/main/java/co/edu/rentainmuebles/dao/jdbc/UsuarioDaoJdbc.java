@@ -26,6 +26,29 @@ public final class UsuarioDaoJdbc extends JdbcSoporte<Usuario> implements Usuari
     }
     @Override public Usuario crear(Usuario u) { nueva(u.getId()); return escribir(u,false); }
     @Override public Usuario actualizar(Usuario u) { id(u.getId()); return escribir(u,true); }
+    @Override public Usuario activarPerfil(long usuarioId, Rol perfil) {
+        id(usuarioId);
+        String tabla;
+        if (perfil == Rol.CLIENTE) tabla="cliente";
+        else if (perfil == Rol.PROPIETARIO) tabla="propietario";
+        else throw new IllegalArgumentException("Perfil no activable.");
+        return transaccion(c -> {
+            List<Usuario> encontrados=consultar(c,"SELECT * FROM usuario WHERE id_usuario=? FOR UPDATE",
+                    s -> s.setLong(1,usuarioId));
+            if (encontrados.isEmpty()) throw new co.edu.rentainmuebles.dao.DaoException("El usuario no existe.");
+            Usuario actual=encontrados.get(0);
+            Rol previo=perfil == Rol.CLIENTE ? Rol.PROPIETARIO : Rol.CLIENTE;
+            if (!actual.isActivo() || !actual.tieneRol(previo)) {
+                throw new co.edu.rentainmuebles.dao.DaoException("Se requiere una cuenta activa con el perfil complementario.");
+            }
+            // tabla es una constante interna permitida, nunca un parámetro del formulario.
+            // No se llama a actualizar(): no se reescriben datos ni se eliminan perfiles.
+            try (PreparedStatement s=c.prepareStatement("INSERT INTO "+tabla+"(id_usuario) VALUES(?) ON CONFLICT DO NOTHING")) {
+                s.setLong(1,usuarioId); s.executeUpdate();
+            }
+            return consultar(c,"SELECT * FROM usuario WHERE id_usuario=?",s -> s.setLong(1,usuarioId)).get(0);
+        });
+    }
     private Usuario escribir(Usuario u,boolean actualizar) {
         Objects.requireNonNull(u);
         return conexion(c->{

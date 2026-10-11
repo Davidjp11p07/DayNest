@@ -7,7 +7,7 @@
  <filter><filter-name>rol</filter-name><filter-class>co.edu.rentainmuebles.filter.AutorizacionFilter</filter-class></filter>
  <filter-mapping><filter-name>utf8</filter-name><url-pattern>/*</url-pattern><dispatcher>REQUEST</dispatcher><dispatcher>ERROR</dispatcher></filter-mapping>
  <filter-mapping><filter-name>csrf</filter-name><url-pattern>/*</url-pattern></filter-mapping>
- <filter-mapping><filter-name>sesion</filter-name><url-pattern>/admin</url-pattern><url-pattern>/admin/*</url-pattern><url-pattern>/cliente</url-pattern><url-pattern>/cliente/*</url-pattern><url-pattern>/propietario</url-pattern><url-pattern>/propietario/*</url-pattern></filter-mapping>
+ <filter-mapping><filter-name>sesion</filter-name><url-pattern>/admin</url-pattern><url-pattern>/admin/*</url-pattern><url-pattern>/cliente</url-pattern><url-pattern>/cliente/*</url-pattern><url-pattern>/propietario</url-pattern><url-pattern>/propietario/*</url-pattern><url-pattern>/cuenta/perfiles</url-pattern></filter-mapping>
  <filter-mapping><filter-name>rol</filter-name><url-pattern>/admin</url-pattern><url-pattern>/admin/*</url-pattern><url-pattern>/cliente</url-pattern><url-pattern>/cliente/*</url-pattern><url-pattern>/propietario</url-pattern><url-pattern>/propietario/*</url-pattern></filter-mapping>
  <session-config><session-timeout>30</session-timeout><cookie-config><http-only>true</http-only></cookie-config><tracking-mode>COOKIE</tracking-mode></session-config>
  <welcome-file-list><welcome-file>inicio</welcome-file></welcome-file-list>

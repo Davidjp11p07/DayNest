@@ -41,6 +41,15 @@ public final class AutenticacionServiceImpl extends ServicioBase implements Aute
             return u;
         });
     }
+    @Override public Usuario activarPerfil(long usuarioId, Rol perfil) {
+        if (perfil != Rol.CLIENTE && perfil != Rol.PROPIETARIO) {
+            throw new NegocioException("Solo se puede activar el perfil cliente o propietario.");
+        }
+        return ejecutar(d -> {
+            actor(d,usuarioId,perfil == Rol.CLIENTE ? Rol.PROPIETARIO : Rol.CLIENTE);
+            return d.usuarios().activarPerfil(usuarioId,perfil);
+        });
+    }
     private static String correo(String correo) {
         if (correo == null) { throw new NegocioException("El correo es obligatorio."); }
         String normalizado = correo.trim().toLowerCase(java.util.Locale.ROOT);
