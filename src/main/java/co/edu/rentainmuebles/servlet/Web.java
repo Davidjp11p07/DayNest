@@ -28,6 +28,16 @@ public final class Web {
         r.setAttribute("hoy",servicios(r).hoy());
         r.setAttribute("minEntrada",servicios(r).hoy().plusDays(1));
         recuperarFormulario(r);
+        if(r.getAttribute("form")==null) {
+            Map<String,String> seleccion=new HashMap<>();
+            for(String campo:List.of("entrada","salida","huespedes")) {
+                String valor=opcional(r,campo);
+                if(valor!=null) seleccion.put(campo,valor);
+            }
+            if(!seleccion.containsKey("huespedes") && opcional(r,"capacidad")!=null)
+                seleccion.put("huespedes",opcional(r,"capacidad"));
+            r.setAttribute("form",seleccion);
+        }
         for(String lista:List.of("inmuebles","reservas","pagos","giros")) {
             if(r.getAttribute(lista) instanceof List<?> datos) paginar(r,lista,datos);
         }
@@ -64,6 +74,15 @@ public final class Web {
         if(actual.equals(destino)||conId.equals(destino)) {
             r.setAttribute("form",s.getAttribute("formValores")); s.removeAttribute("formDestino"); s.removeAttribute("formValores");
         }
+    }
+    /** Retorno construido exclusivamente con una ruta local fija y parametros codificados. */
+    public static String destinoReserva(HttpServletRequest r) {
+        String destino="/cliente/reservar?id="+id(r,"id");
+        for(String campo:List.of("entrada","salida","huespedes")) {
+            String valor=opcional(r,campo);
+            if(valor!=null) destino+="&"+campo+"="+URLEncoder.encode(valor,StandardCharsets.UTF_8);
+        }
+        return destino;
     }
     public static String rutaConId(HttpServletRequest r,String ruta,String campo,String alternativa) {
         try { return ruta+"?id="+id(r,campo); } catch(NegocioException e) { return alternativa; }

@@ -29,9 +29,11 @@ public final class AutenticacionServlet extends HttpServlet {
                 Web.flash(r,"exito","Registro completado. Ya puede iniciar sesión."); Web.redirect(r,p,"/login");
             } else {
                 Usuario usuario=Web.servicios(r).autenticacion.login(Web.texto(r,"correo"),chars);
-                HttpSession anterior=r.getSession(false); if(anterior!=null) anterior.invalidate();
+                HttpSession anterior=r.getSession(false);
+                String retorno=anterior==null?null:(String)anterior.getAttribute("retornoReserva");
+                if(anterior!=null) anterior.invalidate();
                 HttpSession nueva=r.getSession(true); nueva.setAttribute("usuario",new UsuarioSesion(usuario)); Web.token(nueva);
-                Web.flash(r,"exito","Bienvenido, "+usuario.getNombre()+"."); Web.redirect(r,p,Web.inicioRol(Web.usuario(r)));
+                Web.flash(r,"exito","Bienvenido, "+usuario.getNombre()+"."); Web.redirect(r,p,usuario.isCliente() && retorno!=null?retorno:Web.inicioRol(Web.usuario(r)));
             }
         } catch(NegocioException e) {
             Web.recordarFormulario(r,r.getServletPath(),"nombre","correo","telefono","rol");
