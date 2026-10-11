@@ -1,0 +1,5 @@
+package co.edu.rentainmuebles.dao;
+import co.edu.rentainmuebles.SoportePostgres;import co.edu.rentainmuebles.config.ConexionBD;import org.junit.jupiter.api.Test;import static org.junit.jupiter.api.Assertions.*;import java.nio.file.*;
+class ScriptsTest extends SoportePostgres {
+ @Test void catalogoReejecutableYDosInmueblesPorCapital()throws Exception{try(var c=ConexionBD.abrir();var s=c.createStatement()){s.execute(Files.readString(Path.of("data.sql")));s.execute(Files.readString(Path.of("data.sql")));try(var r=s.executeQuery("SELECT count(*),count(*) FILTER(WHERE p.codigo_iso2='CO') FROM ciudad c JOIN division_administrativa d USING(id_division) JOIN pais p USING(id_pais)")){r.next();assertEquals(33,r.getInt(1));assertEquals(32,r.getInt(2));}try(var r=s.executeQuery("SELECT count(*) FROM ciudad c JOIN division_administrativa d USING(id_division) JOIN pais p USING(id_pais) WHERE p.codigo_iso2='CO' AND (SELECT count(*) FROM inmueble i WHERE i.id_ciudad=c.id_ciudad AND i.estado='PUBLICADO')<2")){r.next();assertEquals(0,r.getInt(1));}assertEquals(66,inmuebles.listar().size());}}
+}

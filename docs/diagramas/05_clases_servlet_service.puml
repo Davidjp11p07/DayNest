@@ -1,0 +1,106 @@
+@startuml
+!include estilo.iuml
+title Entradas HTTP, seguridad y servicios
+left to right direction
+hide empty members
+class PublicoServlet {
+  #doGet(...) : void
+}
+class AutenticacionServlet {
+  #doGet(...) : void
+  #doPost(...) : void
+}
+class ClienteServlet {
+  #doGet(...) : void
+  #doPost(...) : void
+}
+class PropietarioServlet {
+  #doGet(...) : void
+  #doPost(...) : void
+}
+class AdministradorServlet {
+  #doGet(...) : void
+  #doPost(...) : void
+}
+class AplicacionListener {
+  -tarea : java.util.concurrent.ScheduledExecutorService
+  +contextInitialized(...) : void
+  +contextDestroyed(...) : void
+}
+class Web {
+  +servicios(...) : Servicios
+  +usuario(...) : UsuarioSesion
+  +token(...) : String
+  +vista(...) : void
+  +recordarFormulario(...) : void
+  +rutaConId(...) : String
+  +redirect(...) : void
+  +flash(...) : void
+  +texto(...) : String
+  +opcional(...) : String
+  +idOpcional(...) : Long
+  +booleanoOpcional(...) : Boolean
+  +id(...) : long
+  +entero(...) : Integer
+  +requerido(...) : int
+  +dinero(...) : BigDecimal
+  +fecha(...) : LocalDate
+  +errorFormulario(...) : void
+  +errorConsulta(...) : void
+  +inicioRol(...) : String
+}
+class Servicios {
+  -reloj : Clock
+  +hoy(...) : LocalDate
+  +crear(...) : Servicios
+}
+class CatalogoService {
+  -dao : CiudadDao
+  +paises(...) : java.util.Map<Long,String>
+  +divisiones(...) : java.util.Map<Long,String>
+  +ciudades(...) : List<Ciudad>
+  +resolver(...) : Ciudad
+}
+class BloqueoService {
+  -dao : BloqueoDao
+  +listar(...) : List<Bloqueo>
+  +crear(...) : void
+  +liberar(...) : void
+}
+class CicloReservas {
+  -dao : CicloReservasDao
+  +ejecutar(...) : void
+}
+class HistorialAnteriorService {
+  -dao : HistorialAnteriorDao
+  +consultar(...) : List<Map<String,Object>>
+}
+interface AutenticacionService
+interface InmuebleService
+interface ReservaService
+interface PagoService
+interface GiroService
+interface AdministracionService
+PublicoServlet ..> InmuebleService
+PublicoServlet ..> CatalogoService
+AutenticacionServlet ..> AutenticacionService
+ClienteServlet ..> InmuebleService
+ClienteServlet ..> ReservaService
+ClienteServlet ..> PagoService
+PropietarioServlet ..> InmuebleService
+PropietarioServlet ..> ReservaService
+PropietarioServlet ..> GiroService
+AdministradorServlet ..> AdministracionService
+PropietarioServlet --> BloqueoService
+AdministradorServlet --> HistorialAnteriorService
+AplicacionListener --> CicloReservas
+Web --> Servicios
+note bottom of Web
+  Los servlets obtienen Servicios mediante Web.servicios(request).
+  Las JSP presentan los resultados; filtros protegen sesión, rol y CSRF.
+end note
+legend bottom
+  Firmas abreviadas (...); nombres y atributos comprobados contra Java.
+  Pago representa movimiento_pago. Datos geográficos: registros Java inmutables.
+endlegend
+@enduml

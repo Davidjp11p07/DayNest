@@ -1,0 +1,111 @@
+@startuml
+!include estilo.iuml
+title Inmueble, contrato y calendario
+hide empty members
+package "co.edu.rentainmuebles.model" {
+class Inmueble {
+  -id : Long
+  -propietario : Propietario
+  -titulo : String
+  -ciudad : String
+  -direccion : String
+  -descripcion : String
+  -capacidad : int
+  -precioPorNoche : BigDecimal
+  -estado : EstadoInmueble
+  -ubicacion : Ciudad
+  -tipo : String
+  -esRural : Boolean
+  -cercaMar : Boolean
+  -moneda : String
+  +getEsRural() : Boolean
+  +getCercaMar() : Boolean
+  +getUbicacion(...) : Ciudad
+  +getTipo(...) : String
+  +getMoneda(...) : String
+}
+class PeriodoEstadia {
+  -entrada : LocalDate
+  -salida : LocalDate
+  +getEntrada(...) : LocalDate
+  +getSalida(...) : LocalDate
+  +getNoches(...) : long
+  +equals(...) : boolean
+  +hashCode(...) : int
+}
+class Ocupacion {
+  -id : long
+  -inmuebleId : long
+  -inicio : LocalDate
+  -fin : LocalDate
+  -tipo : String
+  -activa : boolean
+  +Ocupacion(...) : record
+  +getId(...) : long
+  +getInicio(...) : LocalDate
+  +getFin(...) : LocalDate
+  +isActiva(...) : boolean
+}
+class Bloqueo {
+  -ocupacion : Ocupacion
+  -propietarioId : long
+  -motivo : String
+  +Bloqueo(...) : record
+  +getOcupacion(...) : Ocupacion
+  +getMotivo(...) : String
+}
+class Reserva {
+  -id : Long
+  -cliente : Cliente
+  -inmueble : Inmueble
+  -periodo : PeriodoEstadia
+  -huespedes : int
+  -precioPorNoche : BigDecimal
+  -total : BigDecimal
+  -estado : EstadoReserva
+  -fechaCreacion : LocalDateTime
+  -propietarioPactado : Propietario
+  -moneda : String
+  -expiraEn : java.time.OffsetDateTime
+  +getPropietarioPactado(...) : Propietario
+  +getExpiraEn(...) : java.time.OffsetDateTime
+  +getPeriodo(...) : PeriodoEstadia
+  +getTotal(...) : BigDecimal
+}
+
+
+
+enum EstadoInmueble {
+  BORRADOR
+  PUBLICADO
+  INACTIVO
+}
+enum EstadoReserva {
+  PENDIENTE_PAGO
+  CONFIRMADA
+  FINALIZADA
+  CANCELADA
+  EXPIRADA
+}
+
+
+Reserva "0..*" --> "1" Inmueble
+Reserva "0..*" --> "1" Cliente
+Reserva "0..*" --> "1" Propietario : propietarioPactado
+Inmueble "0..*" --> "1" Propietario
+Inmueble "0..*" --> "1" Ciudad : ubicacion
+Reserva "1" *-- "1" PeriodoEstadia
+Bloqueo "1" *-- "1" Ocupacion
+note bottom of Reserva
+ propietarioPactado, moneda y expiraEn preservan el contrato.
+ DAO une reserva con ocupacion para recuperar sus fechas/inmueble.
+end note
+note right of Inmueble
+  tipo, esRural y cercaMar pueden ser null.
+  No se deducen de fotos ni de ubicación.
+end note
+}
+legend bottom
+  Firmas abreviadas (...); nombres y atributos comprobados contra Java.
+endlegend
+@enduml

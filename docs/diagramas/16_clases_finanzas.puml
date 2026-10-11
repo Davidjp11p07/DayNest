@@ -1,0 +1,67 @@
+@startuml
+!include estilo.iuml
+title Movimientos financieros y beneficiario histórico
+package "co.edu.rentainmuebles.model" {
+interface Identificable
+class Reserva
+class Propietario
+abstract class MovimientoFinanciero {
+  {abstract} +getTipo() : TipoMovimiento
+  -id : Long
+  -reserva : Reserva
+  -monto : BigDecimal
+  -referencia : String
+  -fecha : LocalDateTime
+  +getReserva(...) : Reserva
+  +getMonto(...) : BigDecimal
+}
+class Pago {
+  -metodo : MetodoPago
+  -estado : EstadoPago
+  -clase : String
+  -cobroOrigen : Long
+  -claveIdempotencia : String
+  +getClase(...) : String
+  +getCobroOrigen(...) : Long
+  +getTipo(...) : TipoMovimiento
+  +getEstado(...) : EstadoPago
+}
+class Giro {
+  -propietario : Propietario
+  -estado : EstadoGiro
+  -administradorId : Long
+  -claveIdempotencia : String
+  +getMoneda(...) : String
+  +getTipo(...) : TipoMovimiento
+  +getPropietario(...) : Propietario
+  +getEstado(...) : EstadoGiro
+}
+enum EstadoPago {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+enum EstadoGiro {
+  PENDIENTE
+  PROCESANDO
+  EJECUTADO
+  FALLIDO
+}
+MovimientoFinanciero ..|> Identificable
+Pago --|> MovimientoFinanciero
+Giro --|> MovimientoFinanciero
+MovimientoFinanciero "0..*" --> "1" Reserva
+Giro "0..*" --> "1" Propietario : propietario pactado
+note bottom of Pago
+  Adaptador de movimiento_pago: COBRO o DEVOLUCION.
+  Moneda derivada de la reserva; método de UI no persistido.
+end note
+note bottom of Giro
+  Beneficiario y moneda derivados del contrato histórico.
+  El giro normal simulado se ejecuta por el neto sin comisión.
+end note
+}
+legend bottom
+  Se muestran operaciones principales; firmas abreviadas (...).
+endlegend
+@enduml

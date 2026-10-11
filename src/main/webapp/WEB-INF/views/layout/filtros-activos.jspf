@@ -1,0 +1,11 @@
+<%@ page pageEncoding="UTF-8" %>
+<nav class="active-filters" aria-label="Filtros activos">
+<c:forTokens var="filtro" items="paisId,divisionId,tipo,rural,mar" delims=","><c:if test="${not empty param[filtro]}">
+<c:url var="quitarFiltro" value="/buscar"><c:forTokens var="criterio" items="ciudad,ciudadId,paisId,divisionId,entrada,salida,minimo,maximo,capacidad,tipo,rural,mar" delims=","><c:if test="${criterio ne filtro and not empty param[criterio]}"><c:param name="${criterio}" value="${param[criterio]}"/></c:if></c:forTokens></c:url>
+<a class="filter-chip" href="${fn:escapeXml(quitarFiltro)}"><c:choose>
+<c:when test="${filtro eq 'tipo'}">Tipo: <c:out value="${param.tipo}"/></c:when>
+<c:when test="${filtro eq 'rural'}">En el campo: <c:out value="${param.rural eq 'true' ? 'sí' : 'no'}"/></c:when>
+<c:when test="${filtro eq 'mar'}">Junto al mar: <c:out value="${param.mar eq 'true' ? 'sí' : 'no'}"/></c:when>
+<c:when test="${filtro eq 'paisId'}">País: <c:out value="${paisActivo}"/></c:when>
+<c:otherwise>Región: <c:out value="${divisionActiva}"/></c:otherwise>
+</c:choose><span aria-hidden="true"> ×</span><span class="sr-only"> — quitar filtro</span></a></c:if></c:forTokens></nav>

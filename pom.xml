@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>co.edu</groupId>
+    <artifactId>renta-inmuebles</artifactId>
+    <version>1.0.0</version>
+    <packaging>war</packaging>
+    <name>DayNest</name>
+    <description>Aplicación académica con Servlets, JSP y JDBC puro.</description>
+    <properties>
+        <maven.compiler.release>17</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <jetty.version>12.0.40</jetty.version>
+        <daynest.http.port>8080</daynest.http.port>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId>
+            <version>5.11.4</version><scope>test</scope>
+        </dependency>
+        <!-- Jetty suministra las API Servlet y JSP; no se incluyen en el WAR. -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId><artifactId>jakarta.servlet-api</artifactId>
+            <version>6.0.0</version><scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet.jsp</groupId><artifactId>jakarta.servlet.jsp-api</artifactId>
+            <version>3.1.1</version><scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet.jsp.jstl</groupId><artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.web</groupId><artifactId>jakarta.servlet.jsp.jstl</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId><artifactId>postgresql</artifactId><version>42.7.7</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <finalName>DayNest</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId><artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions><execution><id>java-17</id><goals><goal>enforce</goal></goals>
+                    <configuration><rules><requireJavaVersion>
+                        <version>[17,18)</version><message>Este proyecto se compila y ejecuta con JDK 17. Configure JAVA_HOME con su JDK 17.</message>
+                    </requireJavaVersion></rules></configuration>
+                </execution></executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <argLine>-Dfile.encoding=UTF-8</argLine>
+                    <properties><configurationParameters>junit.jupiter.execution.parallel.enabled=false</configurationParameters></properties>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId><artifactId>maven-dependency-plugin</artifactId>
+                <version>3.8.1</version>
+                <executions><execution><id>driver-local</id><phase>package</phase><goals><goal>copy-dependencies</goal></goals>
+                    <configuration><includeArtifactIds>postgresql</includeArtifactIds><outputDirectory>${project.build.directory}/lib</outputDirectory></configuration>
+                </execution></executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId><artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
+                <configuration><failOnMissingWebXml>false</failOnMissingWebXml></configuration>
+            </plugin>
+            <!-- Jetty 12 / EE10 usa jakarta.* y requiere Java 17. -->
+            <plugin>
+                <groupId>org.eclipse.jetty.ee10</groupId><artifactId>jetty-ee10-maven-plugin</artifactId>
+                <version>${jetty.version}</version>
+                <configuration>
+                    <httpConnector><host>0.0.0.0</host><port>${daynest.http.port}</port></httpConnector>
+                    <webApp><contextPath>/DayNest</contextPath></webApp>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.eclipse.jetty.ee10</groupId><artifactId>jetty-ee10-apache-jsp</artifactId>
+                        <version>${jetty.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+</project>

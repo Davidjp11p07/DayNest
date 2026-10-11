@@ -1,0 +1,58 @@
+@startuml
+!include estilo.iuml
+title Cliente — reserva y pago
+|Cliente|
+start
+:Buscar alojamiento y consultar detalle;
+:Ingresar fechas y huéspedes;
+:Enviar reserva;
+|DayNest|
+:Validar sesión/rol y CSRF;
+:Validar fechas futuras, capacidad y publicación;
+:Bloquear inmueble y comprobar ocupaciones activas;
+if (¿Reserva válida y sin cruces?) then (sí)
+  :Guardar ocupación y reserva PENDIENTE_PAGO
+con tarifa, moneda y propietario pactados;
+  :Confirmar transacción; mostrar total y vencimiento de 30 minutos;
+else (no)
+  :Revertir y mostrar error;
+  stop
+endif
+|Cliente|
+if (¿Decide pagar?) then (sí)
+  :Abrir pago y revisar saldo;
+  :Elegir método e indicar referencia opcional;
+  :Enviar pago;
+  |DayNest|
+  :Bloquear reserva y validar pertenencia, estado y vencimiento;
+  :Calcular saldo = total - neto aprobado;
+  if (¿Pago permitido?) then (sí)
+    :Registrar COBRO y aprobarlo en simulación;
+    :Confirmar reserva; confirmar transacción;
+    :Mostrar reserva CONFIRMADA y saldo;
+  else (no)
+    :Revertir y mostrar error;
+    stop
+  endif
+else (no)
+  |DayNest|
+  :La reserva continúa pendiente;
+  :Al vencer, CicloReservas la expira
+y libera la ocupación;
+  stop
+endif
+|Cliente|
+if (¿Solicita cancelación antes de la entrada?) then (sí)
+  :Enviar cancelación;
+  |DayNest|
+  :Validar pertenencia y estado pendiente/confirmado;
+  :Cancelar, liberar fechas y registrar devoluciones
+de cobros aprobados con saldo por devolver;
+  :Confirmar transacción; conservar historial;
+else (no)
+  |DayNest|
+  :Al terminar la estadía, ciclo automático
+marca FINALIZADA;
+endif
+stop
+@enduml

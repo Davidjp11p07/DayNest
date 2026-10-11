@@ -1,0 +1,40 @@
+package co.edu.rentainmuebles.model;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.util.Objects;
+
+/** Guarda el neto y el beneficiario efectivo; la comisión monetaria se deriva. */
+public final class Giro extends MovimientoFinanciero {
+    private final Propietario propietario;
+    private final EstadoGiro estado;
+    private Long administradorId;
+    private String claveIdempotencia=java.util.UUID.randomUUID().toString();
+    public Giro(Long id, Reserva reserva, Propietario propietario, BigDecimal monto, String referencia,
+                LocalDateTime fecha, EstadoGiro estado) {
+        super(id,reserva,monto,referencia,fecha);
+        this.propietario=Objects.requireNonNull(propietario,"El propietario es obligatorio.");
+        this.estado=Objects.requireNonNull(estado);
+    }
+    public Giro(Long id, Reserva reserva, Propietario propietario, BigDecimal monto, String referencia,
+                LocalDateTime fecha, BigDecimal porcentaje, BigDecimal comision) {
+        this(id,reserva,propietario,monto,referencia,fecha,EstadoGiro.EJECUTADO);
+        if (porcentaje==null || porcentaje.signum()<0 || porcentaje.compareTo(BigDecimal.ONE)>=0
+                || comision==null || reserva.getTotal().subtract(monto).compareTo(comision)!=0
+                || reserva.getTotal().multiply(porcentaje).setScale(2,RoundingMode.HALF_UP).compareTo(comision)!=0)
+            throw new IllegalArgumentException("El desglose de comisión no coincide con el giro.");
+    }
+    public Giro(Long id, Reserva r, Propietario p, BigDecimal monto, String referencia, LocalDateTime fecha, EstadoGiro estado, Long admin, String clave) {
+        this(id,r,p,monto,referencia,fecha,estado);this.administradorId=admin;this.claveIdempotencia=clave;
+    }
+    public Long getAdministradorId(){return administradorId;}
+    public String getClaveIdempotencia(){return claveIdempotencia;}
+    public String getMoneda(){return getReserva().getMoneda();}
+    @Override public TipoMovimiento getTipo() { return TipoMovimiento.GIRO_PROPIETARIO; }
+    public Propietario getPropietario() { return propietario; }
+    public EstadoGiro getEstado() { return estado; }
+    public BigDecimal getMontoComision() { return BigDecimal.ZERO; }
+    /** Porcentaje efectivo derivado del neto; no es la configuración histórica exacta. */
+    public BigDecimal getPorcentajeComision() { return BigDecimal.ZERO; }
+}

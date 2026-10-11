@@ -1,0 +1,98 @@
+@startuml
+!include estilo.iuml
+title Identidad, perfiles y ubicaciones
+hide empty members
+package "co.edu.rentainmuebles.model" {
+interface Identificable {
+  +getId() : Long
+}
+interface PerfilUsuario {
+  +getId(...) : Long
+  +getNombre(...) : String
+  +getCorreo(...) : String
+  +getHashContrasena(...) : String
+  +isActivo(...) : boolean
+  +getUsuario() : Usuario
+  +getRol() : Rol
+}
+class Usuario {
+  -id : Long
+  -nombre : String
+  -correo : String
+  -hashContrasena : String
+  -activo : boolean
+  -telefono : String
+  -administrador : Administrador
+  -cliente : Cliente
+  -propietario : Propietario
+  +tieneRol(...) : boolean
+  +getAdministrador(...) : Administrador
+  +getCliente(...) : Cliente
+  +getPropietario(...) : Propietario
+  +getPerfiles(...) : java.util.List<PerfilUsuario>
+}
+class Cliente {
+  -usuario : Usuario
+  +getUsuario(...) : Usuario
+  +getRol(...) : Rol
+}
+class Propietario {
+  -usuario : Usuario
+  +getUsuario(...) : Usuario
+  +getRol(...) : Rol
+}
+class Administrador {
+  -usuario : Usuario
+  +getUsuario(...) : Usuario
+  +getRol(...) : Rol
+}
+enum Rol {
+  ADMINISTRADOR
+  PROPIETARIO
+  CLIENTE
+}
+class Pais {
+  -id : long
+  -nombre : String
+  -codigoIso2 : String
+  +Pais(...) : record
+}
+class DivisionAdministrativa {
+  -id : long
+  -pais : Pais
+  -nombre : String
+  -codigoOficial : String
+  +DivisionAdministrativa(...) : record
+}
+class Ciudad {
+  -id : long
+  -division : DivisionAdministrativa
+  -nombre : String
+  -codigoOficial : String
+  +Ciudad(...) : record
+  +getId(...) : long
+  +getNombre(...) : String
+  +getEtiqueta(...) : String
+  +getMoneda(...) : String
+}
+Usuario "1" *-- "0..1" Cliente
+Usuario "1" *-- "0..1" Propietario
+Usuario "1" *-- "0..1" Administrador
+Usuario ..|> Identificable
+PerfilUsuario --|> Identificable
+Cliente ..|> PerfilUsuario
+Propietario ..|> PerfilUsuario
+Administrador ..|> PerfilUsuario
+Pais "1" <-- "0..*" DivisionAdministrativa
+DivisionAdministrativa "1" <-- "0..*" Ciudad
+note right of Usuario
+  Identidad única; perfiles opcionales y solapados.
+  Cliente y Propietario no heredan de Usuario.
+  Cada perfil delega su identidad en getUsuario().
+end note
+}
+legend bottom
+  Firmas abreviadas (...); nombres y atributos comprobados contra Java.
+  Pago representa movimiento_pago. Datos geográficos: registros Java inmutables.
+endlegend
+@enduml

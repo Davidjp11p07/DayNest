@@ -1,0 +1,35 @@
+@startuml
+!include estilo.iuml
+title Administrador — gestión de giros simulados
+|Administrador|
+start
+:Abrir reservas y revisar las que permiten giro;
+:Seleccionar reserva e indicar referencia opcional;
+:Solicitar generación de giro;
+|DayNest|
+:Validar sesión/rol y CSRF;
+:Bloquear reserva y comprobar administrador activo;
+:Consultar giro vigente y neto de pagos;
+if (¿Salida cumplida, estado confirmado/finalizado,
+pago completo y sin giro vigente?) then (sí)
+  if (¿Estado CONFIRMADA?) then (sí)
+    :Actualizar a FINALIZADA;
+  endif
+  :Tomar propietario pactado histórico;
+  :Registrar giro por neto cobrado sin comisión;
+  :Cambiar PENDIENTE a PROCESANDO y EJECUTADO
+con administrador y fecha;
+  :Confirmar transacción;
+  |Administrador|
+  :Consultar giro y mensaje de éxito;
+else (no)
+  :Revertir y mostrar error;
+endif
+stop
+note right
+  Es una simulación académica local.
+  No hay transferencia bancaria real.
+  Intentos FALLIDO son soportados por la BD;
+  no constituyen una pasarela implementada.
+end note
+@enduml

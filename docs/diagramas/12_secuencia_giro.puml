@@ -1,0 +1,43 @@
+@startuml
+!include estilo.iuml
+title CU19 — giro al propietario pactado
+actor Administrador as u
+participant AdministradorServlet as web
+participant AdministracionServiceImpl as admin
+participant GiroServiceImpl as s
+participant UnidadTrabajoDaoJdbc as tx
+participant UsuarioDaoJdbc as usuarios
+participant ReservaDaoJdbc as reservas
+participant PagoDaoJdbc as pagos
+participant GiroDaoJdbc as giros
+database PostgreSQL as bd
+u -> web : doPost(/admin/generar-giro, id, referencia, CSRF)
+web -> admin : finalizarYGenerarGiro(administradorId, reservaId, referencia)
+admin -> s : generar(administradorId, reservaId, referencia)
+s -> tx : ejecutar(operacion)
+s -> usuarios : buscarPorId(administradorId)
+s -> reservas : buscarPorIdParaActualizar(reservaId)
+s -> giros : buscarPorReserva(reservaId)
+s -> pagos : totalPagado(reservaId)
+note over s : Administrador activo, salida <= hoy,\nCONFIRMADA o FINALIZADA, pago completo y sin giro vigente.
+alt Condición incumplida
+  s --> tx : excepción; rollback
+  s --> web : NegocioException a través de administración
+  web --> u : Mensaje de error
+else Giro permitido
+  opt Reserva todavía CONFIRMADA
+    s -> reservas : actualizarEstado(reservaId, FINALIZADA)
+  end
+  s -> reservas : buscarPorId(reservaId)
+  s -> pagos : totalPagado(reservaId)
+  s -> giros : crear(new Giro(..., propietarioPactado, neto, ...))
+  giros -> bd : INSERT PENDIENTE; UPDATE PROCESANDO\nUPDATE EJECUTADO con administrador y fecha
+  note over giros,bd : Beneficiario derivado de reserva.id_propietario_pactado.\nUQ parcial evita varios giros vigentes para la misma reserva.
+  bd --> giros : giro ejecutado
+  giros --> s : Giro
+  s --> tx : resultado; commit
+  s --> admin : Giro
+  admin --> web : Giro
+  web --> u : Confirmación de giro simulado sin comisión
+end
+@enduml

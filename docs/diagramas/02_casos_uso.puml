@@ -1,0 +1,79 @@
+@startuml
+' El Graphviz local integrado de PlantUML en Windows evita recortes de Smetana.
+!undef USAR_SMETANA
+!include estilo.iuml
+title DayNest — objetivos de los usuarios
+left to right direction
+actor Visitante as v
+actor Cliente as c
+actor Propietario as p
+actor Administrador as a
+rectangle DayNest {
+  package "Acceso y catálogo" {
+    usecase "CU01 Registrarse" as registro
+    usecase "CU02 Iniciar sesión" as login
+    usecase "CU03 Cerrar sesión" as salir
+    usecase "CU04 Buscar alojamientos" as buscar
+    usecase "CU05 Consultar detalle" as detalle
+  }
+  package "Cliente" {
+    usecase "CU06 Crear reserva" as reservar
+    usecase "CU07 Consultar reservas\ny pagos propios" as propias
+    usecase "CU08 Pagar reserva" as pagar
+    usecase "CU09 Cancelar reserva propia" as cancelar
+    usecase "Calcular saldo" as saldo
+    usecase "Comprobar disponibilidad\ny capacidad" as comprobar
+    usecase "Registrar devolución\nsimulada" as devolver
+  }
+  package "Propietario" {
+    usecase "CU10 Publicar inmueble" as publicar
+    usecase "CU11 Consultar/editar\ninmuebles propios" as editar
+    usecase "CU12 Desactivar inmueble propio" as desactivar
+    usecase "CU13 Crear bloqueo" as bloquear
+    usecase "CU14 Liberar bloqueo" as liberar
+    usecase "CU15 Consultar reservas\nrecibidas y giros" as recibidas
+  }
+  package "Administración" {
+    usecase "CU16 Consultar gestión de rentas,\nreservas, pagos y giros" as gestionar
+    usecase "CU17 Cancelar reserva\ncomo administrador" as cancelarAdmin
+    usecase "CU18 Desactivar inmueble\ncomo administrador" as desactivarAdmin
+    usecase "CU19 Generar giro simulado" as giro
+    usecase "CU20 Consultar historial anterior" as historial
+  }
+}
+v -- registro
+v -- login
+v -- buscar
+v -- detalle
+c -- salir
+c -- buscar
+c -- detalle
+c -- reservar
+c -- propias
+c -- pagar
+c -- cancelar
+p -- salir
+p -- publicar
+p -- editar
+p -- desactivar
+p -- bloquear
+p -- liberar
+p -- recibidas
+a -- salir
+a -- gestionar
+a -- cancelarAdmin
+a -- desactivarAdmin
+a -- giro
+a -- historial
+reservar ..> comprobar : <<include>>
+pagar ..> saldo : <<include>>
+devolver ..> cancelar : <<extend>>\n[cobro aprobado con importe por devolver]
+devolver ..> cancelarAdmin : <<extend>>\n[cobro aprobado con importe por devolver]
+legend bottom
+  Una persona puede tener perfiles Cliente y Propietario simultáneamente.
+  Los actores representan roles. El registro público no crea administradores.
+  Iniciar sesión es precondición de las operaciones privadas, no un include.
+  Pago y giro no involucran bancos ni pasarelas externas.
+  Buscar y consultar detalle son públicos, también para usuarios registrados.
+endlegend
+@enduml

@@ -1,0 +1,2 @@
+<%@ page pageEncoding="UTF-8" %>
+<div data-city-catalog hidden><c:forEach var="ciudadCatalogo" items="${ciudades}"><span data-id="${fn:escapeXml(ciudadCatalogo.id)}" data-name="${fn:escapeXml(ciudadCatalogo.nombre)}"><c:out value="${ciudadCatalogo.etiqueta}"/></span></c:forEach></div>

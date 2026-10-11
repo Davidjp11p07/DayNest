@@ -1,0 +1,7 @@
+target/
+.tools/
+.env
+.idea/
+*.log
+src/main/resources/db.properties
+*.zip

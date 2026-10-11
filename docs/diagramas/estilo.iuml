@@ -1,0 +1,18 @@
+' Estilo local compartido. Sin includes remotos ni dependencias de la aplicación.
+!ifdef USAR_SMETANA
+!pragma layout smetana
+!endif
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam noteBackgroundColor #FFF7DB
+skinparam noteBorderColor #A78B40
+skinparam classBackgroundColor #F1F5F9
+skinparam classBorderColor #475569
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 95
+hide empty members

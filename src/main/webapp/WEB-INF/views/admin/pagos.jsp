@@ -1,0 +1,4 @@
+<%@ page pageEncoding="UTF-8" %>
+<%@ include file="../layout/cabecera.jspf" %>
+<h1>Pagos registrados</h1><form method="get" action="${fn:escapeXml(pageContext.request.contextPath)}/admin/pagos" class="panel form-inline"><label for="estado">Estado de la reserva</label><select id="estado" name="estado"><option value="">Todos</option><option value="PENDIENTE_PAGO" ${param.estado eq 'PENDIENTE_PAGO' ? 'selected' : ''}>Pendiente</option><option value="CONFIRMADA" ${param.estado eq 'CONFIRMADA' ? 'selected' : ''}>Confirmada</option><option value="FINALIZADA" ${param.estado eq 'FINALIZADA' ? 'selected' : ''}>Finalizada</option><option value="EXPIRADA" ${param.estado eq 'EXPIRADA' ? 'selected' : ''}>Expirada</option><option value="CANCELADA" ${param.estado eq 'CANCELADA' ? 'selected' : ''}>Cancelada</option></select><button type="submit">Aplicar filtro</button></form><br><%@ include file="../layout/pagos.jspf" %>
+<%@ include file="../layout/pie.jspf" %>

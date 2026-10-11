@@ -1,0 +1,3 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Recursos editoriales locales: índice determinista por ID, sin tablas ni lógica de negocio. --%>
+<c:set var="fotosDayNest" value="${fn:split('apto-01.jpg,casa-02.jpg,cabana-01.jpg,finca-01.jpg,casa-mar-01.jpg,apto-02.jpg,casa-03.jpg,cabana-02.jpg,finca-02.jpg,casa-01.jpg,interior-01.jpg,cabana-03.jpg,playa-01.jpg', ',')}"/>

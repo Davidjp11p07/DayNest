@@ -1,0 +1,39 @@
+@startuml
+!include estilo.iuml
+title Propietario — publicación y edición
+|Propietario|
+start
+:Abrir publicar o editar inmueble propio;
+:Ingresar título, ubicación, dirección, descripción,
+capacidad y tarifa por noche;
+:Elegir tipo y entornos, o dejarlos pendientes;
+:Enviar formulario;
+|DayNest|
+:Validar sesión/rol, CSRF y parámetros;
+:Resolver ciudad por id o texto no ambiguo;
+:Validar campos del modelo, tarifa y capacidad positivas;
+if (¿Es edición?) then (sí)
+  :Bloquear inmueble y comprobar pertenencia;
+  :Verificar capacidad contra reservas vigentes;
+else (no)
+  :Obtener propietario activo y moneda de la ubicación;
+endif
+if (¿Datos válidos?) then (sí)
+  if (¿Es nuevo?) then (sí)
+    :Guardar inmueble PUBLICADO;
+  else (no)
+    :Actualizar campos conservando estado y moneda;
+  endif
+  :Confirmar transacción;
+  :Mostrar inmuebles propios;
+else (no)
+  :Revertir; conservar formulario y mostrar error;
+endif
+note right
+  NULL significa clasificación pendiente.
+  Los entornos son independientes.
+  Fotos locales se asignan visualmente por id;
+  no existe carga de fotos ni tabla de imágenes.
+end note
+stop
+@enduml

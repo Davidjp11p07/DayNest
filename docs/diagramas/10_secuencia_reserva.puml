@@ -1,0 +1,41 @@
+@startuml
+!include estilo.iuml
+title CU06 — reserva con capacidad y exclusión de fechas
+actor Cliente as u
+participant ClienteServlet as web
+participant ReservaServiceImpl as s
+participant UnidadTrabajoDaoJdbc as tx
+participant UsuarioDaoJdbc as usuarios
+participant InmuebleDaoJdbc as inmuebles
+participant ReservaDaoJdbc as reservas
+database PostgreSQL as bd
+u -> web : doPost(inmuebleId, entrada, salida, huespedes, CSRF)
+web -> s : crear(clienteId, inmuebleId, entrada, salida, huespedes)
+s -> tx : ejecutar(operacion)
+s -> usuarios : buscarPorId(clienteId)
+usuarios --> s : usuario activo con perfil CLIENTE
+s -> inmuebles : buscarPorIdParaActualizar(inmuebleId)
+inmuebles -> bd : SELECT inmueble FOR UPDATE
+bd --> inmuebles : inmueble y propietario
+inmuebles --> s : Inmueble
+note over s : PeriodoEstadia valida entrada < salida.\nEntrada posterior a hoy, publicación y dueño activos,\n1 <= huéspedes <= capacidad.
+s -> reservas : existeCruce(inmuebleId, periodo, null)
+reservas -> bd : Consultar ocupaciones activas en intervalo [entrada,salida)
+bd --> reservas : existe / no existe
+reservas --> s : boolean
+alt Regla incumplida o cruce de fechas
+  s --> tx : excepción; rollback
+  s --> web : NegocioException
+  web --> u : Formulario con error y datos conservados
+else Disponible y datos válidos
+  s -> reservas : crear(new Reserva(...))
+  reservas -> bd : INSERT ocupacion tipo RESERVA y reserva\nPENDIENTE_PAGO; contrato histórico y expira_en
+  note over reservas,bd : GiST vuelve a impedir el cruce, incluso concurrente.\nRestricciones de capacidad y subtipo se validan en BD.
+  bd --> reservas : id_ocupacion e información de la reserva
+  reservas --> s : Reserva
+  s --> tx : resultado; commit
+  s --> web : Reserva con total = noches × precio pactado
+  web --> u : Confirmación; 30 minutos para pagar
+end
+note over s,bd : AplicacionListener programa CicloReservas independientemente.\nLas reservas pendientes vencidas se marcan EXPIRADA y liberan fechas.
+@enduml

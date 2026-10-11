@@ -1,0 +1,39 @@
+@startuml
+!include estilo.iuml
+title CU04 — búsqueda y ciudades homónimas
+actor Visitante as u
+participant PublicoServlet as web
+participant CatalogoService as cat
+participant CiudadDaoJdbc as geo
+participant InmuebleServiceImpl as s
+participant UnidadTrabajoDaoJdbc as tx
+participant InmuebleDaoJdbc as dao
+database PostgreSQL as bd
+u -> web : doGet(ciudadId/ciudad, fechas, precio, capacidad, filtros)
+web -> cat : ciudades()
+cat -> geo : listar()
+geo -> bd : SELECT ciudad, división y país
+bd --> geo : catálogo con identificadores
+geo --> cat : List<Ciudad>
+cat --> web : ciudades para autocompletado local
+web -> cat : paises()
+web -> cat : divisiones()
+note over u,web : El navegador propone etiquetas ciudad, región y país.\nSeleccionar homónimo envía ciudadId; no se deduce por nombre.
+note over web : Construye FiltrosInmueble con país, división, tipo, rural y mar.\nWeb.idOpcional y Web.booleanoOpcional validan parámetros.
+web -> s : buscar(ciudad, minimo, maximo, capacidad, entrada, salida, filtros)
+s -> tx : ejecutar(operacion)
+alt Fechas o criterios inválidos
+  s --> web : NegocioException / IllegalArgumentException
+  web --> u : HTTP 400 y mensaje
+else Criterios válidos
+  s -> dao : buscar(ciudad, minimo, maximo, capacidad, periodo, filtros)
+  dao -> bd : SQL parametrizado; criterios combinados AND\nPUBLICADO y sin ocupación activa cruzada
+  bd --> dao : coincidencias ordenadas por moneda, precio e id
+  dao --> s : List<Inmueble>
+  note over s : Excluye propietarios inactivos.
+  s --> tx : resultado; commit
+  s --> web : inmuebles
+  web --> u : JSP de resultados o estado vacío
+end
+note over dao,bd : Texto sin tildes y mayúsculas normalizado.\nNULL de clasificación no equivale a NO.\nLa paginación ocurre en la presentación.
+@enduml

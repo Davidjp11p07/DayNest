@@ -1,0 +1,134 @@
+@startuml
+!include estilo.iuml
+title Contratos y políticas de negocio
+hide empty members
+abstract class ServicioBase {
+  #trabajo : UnidadTrabajoDao
+  #reloj : Clock
+  #ejecutar(...) : T
+  #actor(...) : Usuario
+  #inmueble(...) : Inmueble
+  #reserva(...) : Reserva
+  #cancelarPendiente(...) : void
+}
+interface AutenticacionService {
+  +registrar(...)
+  +login(...)
+}
+class AutenticacionServiceImpl {
+  +registrar(...) : Usuario
+  +login(...) : Usuario
+}
+interface InmuebleService {
+  +obtenerPublicado(...)
+  +publicar(...)
+  +editar(...)
+  +desactivar(...)
+  +buscar(...)
+  +listarPropios(...)
+}
+class InmuebleServiceImpl {
+  +obtenerPublicado(...) : Inmueble
+  +publicar(...) : Inmueble
+  +editar(...) : Inmueble
+  +desactivar(...) : void
+  +listarPropios(...) : List<Inmueble>
+  +buscar(...) : List<Inmueble>
+}
+interface ReservaService {
+  +listarRecibidas(...)
+  +crear(...)
+  +cancelar(...)
+  +listarPropias(...)
+}
+class ReservaServiceImpl {
+  +listarRecibidas(...) : List<Reserva>
+  +crear(...) : Reserva
+  +cancelar(...) : void
+  +listarPropias(...) : List<Reserva>
+}
+interface PagoService {
+  +registrar(...)
+  +listarPropios(...)
+  +resumen(...)
+}
+class PagoServiceImpl {
+  +registrar(...) : Pago
+  +resumen(...) : ResumenReserva
+  +listarPropios(...) : List<Pago>
+}
+interface GiroService {
+  +generar(...)
+  +listarPropios(...)
+}
+class GiroServiceImpl {
+  -politica : PoliticaComision
+  +generar(...) : Giro
+  +listarPropios(...) : List<Giro>
+}
+interface AdministracionService {
+  +listarInmuebles(...)
+  +listarReservas(...)
+  +listarPagos(...)
+  +listarGiros(...)
+  +desactivarInmueble(...)
+  +cancelarReserva(...)
+  +finalizarYGenerarGiro(...)
+}
+class AdministracionServiceImpl {
+  -giroService : GiroService
+  +listarInmuebles(...) : List<Inmueble>
+  +listarReservas(...) : List<Reserva>
+  +listarPagos(...) : List<Pago>
+  +listarGiros(...) : List<Giro>
+  +desactivarInmueble(...) : void
+  +cancelarReserva(...) : void
+  +finalizarYGenerarGiro(...) : Giro
+}
+class ResumenReserva {
+  +ResumenReserva(...) : record
+  +getNoches(...) : long
+  +getTotalPactado(...) : BigDecimal
+  +getTotalPagado(...) : BigDecimal
+  +getSaldo(...) : BigDecimal
+}
+AutenticacionServiceImpl ..|> AutenticacionService
+InmuebleServiceImpl ..|> InmuebleService
+ReservaServiceImpl ..|> ReservaService
+PagoServiceImpl ..|> PagoService
+GiroServiceImpl ..|> GiroService
+AdministracionServiceImpl ..|> AdministracionService
+ServicioBase <|-- AutenticacionServiceImpl
+ServicioBase <|-- InmuebleServiceImpl
+ServicioBase <|-- AdministracionServiceImpl
+ServicioBase <|-- ReservaServiceImpl
+ServicioBase <|-- PagoServiceImpl
+ServicioBase <|-- GiroServiceImpl
+interface UnidadTrabajoDao
+class FiltrosInmueble {
+  -paisId : Long
+  -divisionId : Long
+  -tipo : String
+  -rural : Boolean
+  -mar : Boolean
+  +ninguno() : FiltrosInmueble
+}
+InmuebleService ..> FiltrosInmueble : buscar(..., filtros)
+ServicioBase --> UnidadTrabajoDao : trabajo
+AdministracionServiceImpl --> GiroService : giroService
+PagoService ..> ResumenReserva
+note bottom of FiltrosInmueble
+  record: criterios opcionales; no es una entidad persistida.
+  Buscar/publicar/editar tienen sobrecargas con clasificación.
+end note
+note bottom of GiroServiceImpl
+  PoliticaComision se conserva por compatibilidad.
+  generar() opera sin comisión; pago y giro son simulaciones locales.
+end note
+class CiudadDaoJdbc
+InmuebleServiceImpl ..> CiudadDaoJdbc : resolver ubicación
+legend bottom
+  Firmas abreviadas (...); nombres y atributos comprobados contra Java.
+  Pago representa movimiento_pago. Datos geográficos: registros Java inmutables.
+endlegend
+@enduml

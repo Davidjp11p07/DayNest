@@ -1,0 +1,5 @@
+<%@ page pageEncoding="UTF-8" %>
+</main><footer class="site-footer"><div class="footer-top"><div>
+<a class="brand" href="${fn:escapeXml(pageContext.request.contextPath)}/inicio"><img src="${fn:escapeXml(pageContext.request.contextPath)}/assets/img/daynest-logo.svg" alt="" width="42" height="42"><b class="brand-word">Day<span>Nest</span></b></a>
+<p>Tu espacio, tus días.</p></div><nav aria-label="Enlaces del pie"><a href="${fn:escapeXml(pageContext.request.contextPath)}/buscar">Encuentra tu espacio</a><a href="${fn:escapeXml(pageContext.request.contextPath)}/registro">Únete a DayNest</a></nav></div>
+<div class="footer-bottom"><p>DayNest · Alojamientos por días</p><p>Precios en COP o EUR según el alojamiento, sin conversión.</p></div></footer></body></html>

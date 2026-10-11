@@ -1,0 +1,187 @@
+@startuml
+!include estilo.iuml
+title DayNest — modelo lógico del SVG (10 entidades conceptuales, 13 tablas)
+' @sql-table usuario
+entity "USUARIO\n(usuario)" as usuario {
+  * id_usuario : BIGINT <<PK>>
+  * nombre_completo : VARCHAR(160)
+  * correo_normalizado : VARCHAR(254) <<UQ>>
+  * contrasena_hash : TEXT
+  telefono : VARCHAR(30)
+  * activo : BOOLEAN
+  * creado_en : TIMESTAMPTZ
+}
+' @sql-table cliente
+entity "CLIENTE\n(cliente)" as cliente {
+  * id_usuario : BIGINT <<PK, FK usuario.id_usuario>>
+}
+' @sql-table propietario
+entity "PROPIETARIO\n(propietario)" as propietario {
+  * id_usuario : BIGINT <<PK, FK usuario.id_usuario>>
+}
+' @sql-table administrador
+entity "ADMINISTRADOR\n(administrador)" as administrador {
+  * id_usuario : BIGINT <<PK, FK usuario.id_usuario>>
+}
+' @sql-table pais
+entity "PAIS\n(pais)" as pais {
+  * id_pais : BIGINT <<PK>>
+  * nombre : VARCHAR(120)
+  * codigo_iso2 : CHAR(2) <<UQ>>
+}
+' @sql-table division_administrativa
+entity "DIVISION_ADMINISTRATIVA\n(division_administrativa)" as division_administrativa {
+  * id_division : BIGINT <<PK>>
+  * id_pais : BIGINT <<FK pais.id_pais>>
+  * nombre : VARCHAR(160)
+  * codigo_oficial : VARCHAR(40)
+}
+' @sql-table ciudad
+entity "CIUDAD\n(ciudad)" as ciudad {
+  * id_ciudad : BIGINT <<PK>>
+  * id_division : BIGINT <<FK division_administrativa.id_division>>
+  * nombre : VARCHAR(160)
+  * codigo_oficial : VARCHAR(40)
+}
+' @sql-table inmueble
+entity "INMUEBLE\n(inmueble)" as inmueble {
+  * id_inmueble : BIGINT <<PK>>
+  * id_propietario : BIGINT <<FK propietario.id_usuario>>
+  * id_ciudad : BIGINT <<FK ciudad.id_ciudad>>
+  * titulo : VARCHAR(150)
+  descripcion : TEXT
+  * direccion_detallada : VARCHAR(300)
+  tipo : VARCHAR(20)
+  es_rural : BOOLEAN
+  cerca_mar : BOOLEAN
+  * capacidad : SMALLINT
+  * tarifa_noche : NUMERIC(16,2)
+  * moneda : VARCHAR(3)
+  * estado : VARCHAR(12)
+  * creado_en : TIMESTAMPTZ
+}
+' @sql-table ocupacion
+entity "OCUPACION\n(ocupacion)" as ocupacion {
+  * id_ocupacion : BIGINT <<PK>>
+  * id_inmueble : BIGINT <<FK inmueble.id_inmueble>>
+  * fecha_inicio : DATE
+  * fecha_fin : DATE
+  * tipo : VARCHAR(8)
+  * activa : BOOLEAN
+  * creada_en : TIMESTAMPTZ
+}
+' @sql-table reserva
+entity "RESERVA\n(reserva)" as reserva {
+  * id_ocupacion : BIGINT <<PK, FK ocupacion.id_ocupacion>>
+  * id_cliente : BIGINT <<FK cliente.id_usuario>>
+  * id_propietario_pactado : BIGINT <<FK propietario.id_usuario>>
+  * cantidad_huespedes : SMALLINT
+  * precio_noche_pactado : NUMERIC(16,2)
+  * moneda : VARCHAR(3)
+  * estado : VARCHAR(16)
+  * expira_en : TIMESTAMPTZ
+  * creada_en : TIMESTAMPTZ
+}
+' @sql-table bloqueo
+entity "BLOQUEO\n(bloqueo)" as bloqueo {
+  * id_ocupacion : BIGINT <<PK, FK ocupacion.id_ocupacion>>
+  * id_propietario_solicitante : BIGINT <<FK propietario.id_usuario>>
+  * motivo : VARCHAR(250)
+}
+' @sql-table movimiento_pago
+entity "MOVIMIENTO_PAGO\n(movimiento_pago)" as movimiento_pago {
+  * id_movimiento : BIGINT <<PK>>
+  * id_reserva : BIGINT <<FK reserva.id_ocupacion>>
+  * clase : VARCHAR(12)
+  * monto : NUMERIC(16,2)
+  * estado : VARCHAR(12)
+  id_cobro_origen : BIGINT <<FK compuesta>>
+  * clave_idempotencia : VARCHAR(120) <<UQ>>
+  referencia_externa : VARCHAR(140) <<UQ>>
+  * creado_en : TIMESTAMPTZ
+  resuelto_en : TIMESTAMPTZ
+}
+' @sql-table giro
+entity "GIRO\n(giro)" as giro {
+  * id_giro : BIGINT <<PK>>
+  * id_reserva : BIGINT <<FK reserva.id_ocupacion>>
+  id_admin_autorizador : BIGINT <<FK administrador.id_usuario>>
+  * monto : NUMERIC(16,2)
+  * estado : VARCHAR(12)
+  * clave_idempotencia : VARCHAR(120) <<UQ>>
+  referencia_externa : VARCHAR(140) <<UQ>>
+  * creado_en : TIMESTAMPTZ
+  ejecutado_en : TIMESTAMPTZ
+}
+usuario ||--o| cliente : perfil
+usuario ||--o| propietario : perfil
+usuario ||--o| administrador : perfil
+pais ||--o{ division_administrativa : contiene
+division_administrativa ||--o{ ciudad : contiene
+ciudad ||--o{ inmueble : localiza
+propietario ||--o{ inmueble : dueño vigente
+inmueble ||--o{ ocupacion : calendario
+ocupacion ||--o| reserva : RESERVA
+ocupacion ||--o| bloqueo : BLOQUEO
+cliente ||--o{ reserva : solicita
+propietario ||--o{ reserva : propietario pactado histórico
+propietario ||--o{ bloqueo : solicitante
+reserva ||--o{ movimiento_pago : cobra / devuelve
+movimiento_pago |o--o{ movimiento_pago : cobro original / devoluciones
+reserva ||--o{ giro : intentos
+administrador |o--o{ giro : autoriza ejecución
+note top of usuario
+  Especialización PARCIAL y SOLAPADA:
+  cliente, propietario y administrador pueden coexistir.
+  correo_normalizado = lower(btrim(correo_normalizado)); UNIQUE.
+end note
+note bottom of ocupacion
+  Soporte técnico del calendario; BLOQUEO es extensión autorizada.
+  El SVG original no representa estas dos estructuras.
+  Especialización TOTAL y DISJUNTA: exactamente reserva O bloqueo.
+  Trigger diferido comprueba el subtipo al confirmar la transacción.
+  EXCLUDE GiST: id_inmueble = y daterange(inicio,fin,'[)') && WHERE activa.
+  Reservas PENDIENTE_PAGO y bloqueos activos ocupan las fechas.
+  Reserva cancelada/expirada libera su ocupación.
+  Las fechas y el inmueble de ocupación son inmutables.
+end note
+note bottom of reserva
+  Tabla asociativa de la relación RESERVA del SVG.
+  id_ocupacion identifica la ocurrencia y su historial financiero.
+  Inicio no es UNIQUE global: cancelación y nueva contratación pueden repetirlo.
+  Términos históricos inmutables: cliente, propietario pactado,
+  huéspedes, precio, moneda y vencimiento.
+  CONFIRMADA exige cobro completo; FINALIZADA exige salida vencida.
+  expira_en: proceso periódico; no se usa now() en el índice.
+end note
+note bottom of movimiento_pago
+  Moneda derivada de reserva.moneda inmutable, sin columna duplicada.
+  UQ (id_movimiento,id_reserva).
+  FK (id_cobro_origen,id_reserva) -> (id_movimiento,id_reserva).
+  DEVOLUCION exige cobro aprobado de la misma reserva,
+  reserva cancelada/expirada y monto no superior al cobro original.
+  PENDIENTE -> APROBADO / RECHAZADO; no sobrecobros.
+end note
+note bottom of giro
+  Moneda derivada de reserva.moneda inmutable, sin columna duplicada.
+  UQ parcial por id_reserva WHERE estado IN
+  (PENDIENTE,PROCESANDO,EJECUTADO). Varios FALLIDO permitidos.
+  EJECUTADO: reserva finalizada, administrador y fecha obligatorios.
+  Beneficiario = reserva.id_propietario_pactado; monto = neto cobrado.
+  Sin comisión, impuestos ni conversión de moneda.
+end note
+legend bottom
+  * = NOT NULL (incluye PK). PK = primaria; FK = foránea; UQ = UNIQUE.
+  division_administrativa: UQ(id_pais,codigo_oficial).
+  ciudad: UQ(id_division,codigo_oficial); nombre NO es único.
+  Referencias externas son UNIQUE opcionales; varios NULL permitidos.
+  tipo: APARTAMENTO | CASA | CABAÑA | HABITACION | OTRO | NULL (pendiente)
+  es_rural y cerca_mar: sí / no / NULL (pendiente), independientes.
+  inmueble.estado: BORRADOR | PUBLICADO | INACTIVO
+  reserva.estado: PENDIENTE_PAGO | CONFIRMADA | FINALIZADA | CANCELADA | EXPIRADA
+  movimiento_pago.clase: COBRO | DEVOLUCION; estado: PENDIENTE | APROBADO | RECHAZADO
+  giro.estado: PENDIENTE | PROCESANDO | EJECUTADO | FALLIDO
+  Noches, total, saldo, país/región del inmueble y beneficiario del giro se derivan.
+  DELETE de reservas, movimientos financieros y giros está prohibido.
+endlegend
+@enduml

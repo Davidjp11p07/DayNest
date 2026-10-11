@@ -1,0 +1,181 @@
+@startuml
+!include estilo.iuml
+title Interfaces DAO y persistencia JDBC
+left to right direction
+hide empty members
+interface UnidadTrabajoDao {
+  +ejecutar(...)
+}
+interface Daos {
+  +usuarios(...)
+  +inmuebles(...)
+  +reservas(...)
+  +pagos(...)
+  +giros(...)
+}
+class UnidadTrabajoDaoJdbc {
+
+}
+abstract class JdbcSoporte {
+  -prestada : Connection
+}
+interface UsuarioDao {
+  +buscarPorId(...)
+  +listar(...)
+  +crear(...)
+  +actualizar(...)
+  +desactivar(...)
+  +buscarPorCorreo(...)
+  +buscarPorRol(...)
+}
+class UsuarioDaoJdbc {
+  +buscarPorId(...) : Optional<Usuario>
+  +buscarPorCorreo(...) : Optional<Usuario>
+  +listar(...) : List<Usuario>
+  +buscarPorRol(...) : List<Usuario>
+  +crear(...) : Usuario
+  +actualizar(...) : Usuario
+  +desactivar(...) : void
+}
+interface InmuebleDao {
+  +buscarPorIdParaActualizar(...)
+  +buscarPorId(...)
+  +listar(...)
+  +crear(...)
+  +actualizar(...)
+  +eliminar(...)
+  +desactivar(...)
+  +buscarPorPropietario(...)
+  +buscar(...)
+}
+class InmuebleDaoJdbc {
+  +buscarPorId(...) : Optional<Inmueble>
+  +buscarPorIdParaActualizar(...) : Optional<Inmueble>
+  +listar(...) : List<Inmueble>
+  +buscarPorPropietario(...) : List<Inmueble>
+  +crear(...) : Inmueble
+  +actualizar(...) : Inmueble
+  +desactivar(...) : void
+  +eliminar(...) : void
+  +buscar(...) : List<Inmueble>
+}
+interface ReservaDao {
+  +buscarPorIdParaActualizar(...)
+  +buscarPorId(...)
+  +listar(...)
+  +crear(...)
+  +actualizarEstado(...)
+  +buscarPorCliente(...)
+  +buscarPorInmueble(...)
+  +buscarPorEstado(...)
+  +existeCruce(...)
+}
+class ReservaDaoJdbc {
+  +buscarPorId(...) : Optional<Reserva>
+  +buscarPorIdParaActualizar(...) : Optional<Reserva>
+  +listar(...) : List<Reserva>
+  +buscarPorCliente(...) : List<Reserva>
+  +buscarPorInmueble(...) : List<Reserva>
+  +buscarPorEstado(...) : List<Reserva>
+  +crear(...) : Reserva
+  +actualizarEstado(...) : void
+  +existeCruce(...) : boolean
+}
+interface PagoDao {
+  +buscarPorId(...)
+  +listar(...)
+  +crear(...)
+  +buscarPorReserva(...)
+  +listarPorReserva(...)
+  +totalPagado(...)
+}
+class PagoDaoJdbc {
+  +buscarPorId(...) : Optional<Pago>
+  +listar(...) : List<Pago>
+  +listarPorReserva(...) : List<Pago>
+  +buscarPorReserva(...) : Optional<Pago>
+  +crear(...) : Pago
+  +totalPagado(...) : BigDecimal
+}
+interface GiroDao {
+  +buscarPorId(...)
+  +listar(...)
+  +crear(...)
+  +buscarPorReserva(...)
+  +buscarPorPropietario(...)
+}
+class GiroDaoJdbc {
+  +buscarPorId(...) : Optional<Giro>
+  +listar(...) : List<Giro>
+  +buscarPorPropietario(...) : List<Giro>
+  +buscarPorReserva(...) : Optional<Giro>
+  +crear(...) : Giro
+}
+interface CiudadDao {
+  +listar(...)
+  +resolver(...)
+  +paises(...)
+  +divisiones(...)
+}
+class CiudadDaoJdbc {
+  +paises(...) : Map<Long,String>
+  +divisiones(...) : Map<Long,String>
+  +normalizar(...) : String
+  +listar(...) : List<Ciudad>
+  +resolver(...) : Ciudad
+}
+interface BloqueoDao {
+
+}
+class BloqueoDaoJdbc {
+  +listar(...) : List<Bloqueo>
+  +crear(...) : void
+  +liberar(...) : void
+}
+interface CicloReservasDao {
+
+}
+class CicloReservasDaoJdbc {
+  +ejecutar(...) : void
+}
+interface HistorialAnteriorDao {
+
+}
+class HistorialAnteriorDaoJdbc {
+  +consultar(...) : List<Map<String,Object>>
+}
+class ConexionBD {
+  +abrir(...) : Connection
+}
+UnidadTrabajoDaoJdbc ..|> UnidadTrabajoDao
+UsuarioDaoJdbc ..|> UsuarioDao
+InmuebleDaoJdbc ..|> InmuebleDao
+ReservaDaoJdbc ..|> ReservaDao
+PagoDaoJdbc ..|> PagoDao
+GiroDaoJdbc ..|> GiroDao
+CiudadDaoJdbc ..|> CiudadDao
+BloqueoDaoJdbc ..|> BloqueoDao
+CicloReservasDaoJdbc ..|> CicloReservasDao
+HistorialAnteriorDaoJdbc ..|> HistorialAnteriorDao
+UnidadTrabajoDao ..> Daos : callback Function<Daos,T>
+UnidadTrabajoDaoJdbc ..> UsuarioDaoJdbc
+UnidadTrabajoDaoJdbc ..> InmuebleDaoJdbc
+UnidadTrabajoDaoJdbc ..> ReservaDaoJdbc
+UnidadTrabajoDaoJdbc ..> PagoDaoJdbc
+UnidadTrabajoDaoJdbc ..> GiroDaoJdbc
+UsuarioDaoJdbc --|> JdbcSoporte
+InmuebleDaoJdbc --|> JdbcSoporte
+ReservaDaoJdbc --|> JdbcSoporte
+PagoDaoJdbc --|> JdbcSoporte
+GiroDaoJdbc --|> JdbcSoporte
+CiudadDaoJdbc --|> JdbcSoporte
+JdbcSoporte ..> ConexionBD
+note bottom of Daos
+  Interfaz anidada real: UnidadTrabajoDao.Daos.
+  Los DAO de la operación comparten la conexión transaccional.
+end note
+legend bottom
+  Firmas abreviadas (...); nombres y atributos comprobados contra Java.
+  Pago representa movimiento_pago. Datos geográficos: registros Java inmutables.
+endlegend
+@enduml

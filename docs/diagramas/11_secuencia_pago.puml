@@ -1,0 +1,49 @@
+@startuml
+!include estilo.iuml
+title CU08 — saldo y pago simulado de una reserva
+actor Cliente as u
+participant ClienteServlet as web
+participant PagoServiceImpl as s
+participant UnidadTrabajoDaoJdbc as tx
+participant UsuarioDaoJdbc as usuarios
+participant ReservaDaoJdbc as reservas
+participant PagoDaoJdbc as pagos
+database PostgreSQL as bd
+u -> web : doGet(/cliente/pagar?id=...)
+web -> s : resumen(clienteId, reservaId)
+s -> tx : ejecutar(operacion)
+s -> usuarios : buscarPorId(clienteId)
+s -> reservas : buscarPorId(reservaId)
+s -> pagos : totalPagado(reservaId)
+pagos -> bd : SUM(cobros aprobados - devoluciones aprobadas)
+bd --> pagos : neto pagado
+pagos --> s : BigDecimal
+s --> web : ResumenReserva(noches, total pactado, pagado, saldo)
+web --> u : Saldo = total pactado - total pagado
+u -> web : doPost(id, metodo, referencia, CSRF)
+web -> s : registrar(clienteId, reservaId, metodo, referencia)
+s -> tx : ejecutar(operacion)
+s -> usuarios : buscarPorId(clienteId)
+s -> reservas : buscarPorIdParaActualizar(reservaId)
+reservas -> bd : SELECT reserva FOR UPDATE
+reservas --> s : Reserva
+note over s : Comprueba pertenencia, PENDIENTE_PAGO,\nno vencida y entrada futura.
+s -> reservas : existeCruce(inmuebleId, periodo, reservaId)
+s -> pagos : totalPagado(reservaId)
+alt Regla incumplida o importe inválido
+  s --> tx : excepción; rollback
+  s --> web : NegocioException
+  web --> u : Formulario con error
+else Pago permitido
+  s -> pagos : crear(new Pago(..., total - pagado, ...))
+  pagos -> bd : INSERT COBRO con clave idempotente\nUPDATE PENDIENTE a APROBADO (simulación)
+  bd --> pagos : movimiento aprobado
+  pagos --> s : Pago
+  s -> reservas : actualizarEstado(reservaId, CONFIRMADA)
+  s -> reservas : buscarPorId(reservaId)
+  s --> tx : resultado; commit
+  s --> web : Pago de reserva confirmada
+  web --> u : Confirmación y saldo actualizado
+end
+note over pagos,bd : BD impide sobrecobro y referencias duplicadas.\nEl método elegido no tiene columna persistida.\nNo existe una llamada a banco o pasarela.
+@enduml

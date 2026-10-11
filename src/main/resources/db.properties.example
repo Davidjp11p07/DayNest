@@ -1,0 +1,5 @@
+# Copiar a db.properties y completar su contraseña local. No publicar el archivo real.
+db.url=jdbc:postgresql://localhost:5432/renta_inmuebles
+db.esquema=daynest
+db.usuario=postgres
+db.contrasena=CAMBIE_ESTA_CONTRASENA

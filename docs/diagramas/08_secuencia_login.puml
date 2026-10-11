@@ -1,0 +1,32 @@
+@startuml
+!include estilo.iuml
+title CU02 — iniciar sesión
+actor Visitante as u
+participant AutenticacionServlet as web
+participant AutenticacionServiceImpl as s
+participant UnidadTrabajoDaoJdbc as tx
+participant UsuarioDaoJdbc as dao
+participant PasswordUtil as claves
+database PostgreSQL as bd
+u -> web : doPost(correo, password, CSRF)
+web -> s : login(correo, chars)
+s -> tx : ejecutar(operacion)
+note over s,tx : La unidad de trabajo ejecuta el callback del servicio\ncon DAO asociados a una conexión; commit o rollback.
+s -> dao : buscarPorCorreo(normalizado)
+dao -> bd : SELECT usuario y perfiles
+bd --> dao : identidad y hash
+dao --> s : Optional<Usuario>
+s -> claves : verificar(copia, hash)
+claves --> s : resultado
+alt Correo inexistente, contraseña incorrecta o usuario inactivo
+  s --> tx : excepción; rollback
+  s --> web : NegocioException
+  web --> u : Error y redirección a /login
+else Credenciales válidas y cuenta activa
+  s --> tx : resultado; commit
+  s --> web : Usuario
+  note over web : Invalida sesión anterior; crea HttpSession.\nGuarda UsuarioSesion sin hash y crea token CSRF.
+  web --> u : Redirección al inicio del rol
+end
+note over claves : Las copias char[] de la contraseña se limpian en finally.
+@enduml

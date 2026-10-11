@@ -1,0 +1,142 @@
+[
+  {
+    "archivo": "hero.jpg",
+    "autor": "Dmitry Spravko",
+    "fuente": "Unsplash",
+    "pagina": "https://unsplash.com/photos/GT9BT478ZJQ",
+    "descarga": "https://images.unsplash.com/photo-1762568702039-9ef749e06152?auto=format&fit=max&w=1600&fm=jpg&q=75",
+    "bytes": 258147,
+    "ancho": 1600,
+    "alto": 900
+  },
+  {
+    "archivo": "cabana-01.jpg",
+    "autor": "Marek Piwnicki",
+    "fuente": "Unsplash",
+    "pagina": "https://unsplash.com/photos/T-diK7VcHmY",
+    "descarga": "https://images.unsplash.com/photo-1708722084549-0c9ed7b262fa?auto=format&fit=max&w=1600&fm=jpg&q=75",
+    "bytes": 272746,
+    "ancho": 1600,
+    "alto": 900
+  },
+  {
+    "archivo": "cabana-02.jpg",
+    "autor": "Edoardo Bortoli",
+    "fuente": "Unsplash",
+    "pagina": "https://unsplash.com/photos/xxC9ooYnMSo",
+    "descarga": "https://images.unsplash.com/photo-1701798064310-9eb1ac5ee227?auto=format&fit=max&w=1600&fm=jpg&q=75",
+    "bytes": 294517,
+    "ancho": 1600,
+    "alto": 1067
+  },
+  {
+    "archivo": "cabana-03.jpg",
+    "autor": "Marija L",
+    "fuente": "Unsplash",
+    "pagina": "https://unsplash.com/photos/4_TfkPM9MBw",
+    "descarga": "https://images.unsplash.com/photo-1561317782-21bf50560681?auto=format&fit=max&w=1600&fm=jpg&q=75",
+    "bytes": 223349,
+    "ancho": 1600,
+    "alto": 1067
+  },
+  {
+    "archivo": "apto-01.jpg",
+    "autor": "Lisa Anna",
+    "fuente": "Unsplash",
+    "pagina": "https://unsplash.com/photos/PfeKrK-V_XA",
+    "descarga": "https://images.unsplash.com/photo-1721395283507-1b17e527a922?auto=format&fit=max&w=1600&fm=jpg&q=75",
+    "bytes": 116267,
+    "ancho": 1600,
+    "alto": 1067
+  },
+  {
+    "archivo": "interior-01.jpg",
+    "autor": "Hannah Busing",
+    "fuente": "Unsplash",
+    "pagina": "https://unsplash.com/photos/U-k6XLlml1I",
+    "descarga": "https://images.unsplash.com/photo-1499955085172-a104c9463ece?auto=format&fit=max&w=1600&fm=jpg&q=75",
+    "bytes": 228592,
+    "ancho": 1600,
+    "alto": 1067
+  },
+  {
+    "archivo": "apto-02.jpg",
+    "autor": "Bozica Uglesic",
+    "fuente": "Unsplash",
+    "pagina": "https://unsplash.com/photos/7MGj75YLNTw",
+    "descarga": "https://images.unsplash.com/photo-1663756915301-2ba688e078cf?auto=format&fit=max&w=1600&fm=jpg&q=75",
+    "bytes": 124322,
+    "ancho": 1600,
+    "alto": 984
+  },
+  {
+    "archivo": "finca-01.jpg",
+    "autor": "Andreas Slotosch",
+    "fuente": "Unsplash",
+    "pagina": "https://unsplash.com/photos/hfi6t6fTL74",
+    "descarga": "https://images.unsplash.com/photo-1760202135355-02c8a0ebf86a?auto=format&fit=max&w=1600&fm=jpg&q=75",
+    "bytes": 249588,
+    "ancho": 1600,
+    "alto": 1067
+  },
+  {
+    "archivo": "finca-02.jpg",
+    "autor": "Tanya Barrow (@tanyabarrow, nombre visible T)",
+    "fuente": "Unsplash",
+    "pagina": "https://unsplash.com/photos/mFT7YwTBlc8",
+    "descarga": "https://images.unsplash.com/photo-1767463128490-f5ed9bcbab03?auto=format&fit=max&w=1600&fm=jpg&q=75",
+    "bytes": 256078,
+    "ancho": 1600,
+    "alto": 1061
+  },
+  {
+    "archivo": "casa-01.jpg",
+    "autor": "Drake",
+    "fuente": "Unsplash",
+    "pagina": "https://unsplash.com/photos/c08tsGEHKlQ",
+    "descarga": "https://images.unsplash.com/photo-1768348256583-129b0cc812c2?auto=format&fit=max&w=1600&fm=jpg&q=75",
+    "bytes": 282146,
+    "ancho": 1067,
+    "alto": 1600
+  },
+  {
+    "archivo": "casa-02.jpg",
+    "autor": "Aalo Lens",
+    "fuente": "Unsplash",
+    "pagina": "https://unsplash.com/photos/eWOgoFHlE8g",
+    "descarga": "https://images.unsplash.com/photo-1758448756207-54505680d130?auto=format&fit=max&w=1600&fm=jpg&q=75",
+    "bytes": 271762,
+    "ancho": 1600,
+    "alto": 900
+  },
+  {
+    "archivo": "casa-03.jpg",
+    "autor": "Umair Ali Asad",
+    "fuente": "Unsplash",
+    "pagina": "https://unsplash.com/photos/brr4IdZAiP4",
+    "descarga": "https://images.unsplash.com/photo-1761158494764-bbf2a2e2a70d?auto=format&fit=max&w=1600&fm=jpg&q=75",
+    "bytes": 299171,
+    "ancho": 1600,
+    "alto": 1067
+  },
+  {
+    "archivo": "playa-01.jpg",
+    "autor": "Arno Smit",
+    "fuente": "Unsplash",
+    "pagina": "https://unsplash.com/photos/qY_yTu7YBT4",
+    "descarga": "https://images.unsplash.com/photo-1474874055390-459bc92357f3?auto=format&fit=max&w=1600&fm=jpg&q=75",
+    "bytes": 215397,
+    "ancho": 1600,
+    "alto": 946
+  },
+  {
+    "archivo": "casa-mar-01.jpg",
+    "autor": "Johan Rydberg",
+    "fuente": "Unsplash",
+    "pagina": "https://unsplash.com/photos/-DB6G0_VO2Q",
+    "descarga": "https://images.unsplash.com/photo-1467921918494-f92c2b6365b7?auto=format&fit=max&w=1600&fm=jpg&q=75",
+    "bytes": 229559,
+    "ancho": 1597,
+    "alto": 1600
+  }
+]
