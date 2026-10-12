@@ -34,10 +34,14 @@ public final class Servicios {
         try (InputStream entrada = Servicios.class.getClassLoader().getResourceAsStream("negocio.properties")) {
             if (entrada == null) { throw new NegocioException("No se encontró negocio.properties en el classpath."); }
             p.load(entrada);
-            return new Servicios(new UnidadTrabajoDaoJdbc(),Clock.system(ZoneId.of(p.getProperty("negocio.zonaHoraria"))),
-                    new PoliticaComisionPorcentaje(BigDecimal.ZERO));
+            return crear(p);
         } catch (IOException | IllegalArgumentException | NullPointerException | DateTimeException e) {
             throw new NegocioException("Revise la comisión y la zona horaria de negocio.properties.",e);
         }
     }
+    static Servicios crear(Properties p) {
+        return new Servicios(new UnidadTrabajoDaoJdbc(),Clock.system(ZoneId.of(p.getProperty("negocio.zonaHoraria"))),
+                new PoliticaComisionPorcentaje(new BigDecimal(p.getProperty("negocio.comision"))));
+    }
+
 }

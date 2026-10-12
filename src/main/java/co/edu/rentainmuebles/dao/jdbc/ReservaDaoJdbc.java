@@ -8,6 +8,7 @@ public final class ReservaDaoJdbc extends JdbcSoporte<Reserva> implements Reserv
  public Optional<Reserva> buscarPorId(long id){return uno(SELECT+" WHERE r.id_ocupacion=?",s->s.setLong(1,id(id)));}
  public Optional<Reserva> buscarPorIdParaActualizar(long id){return uno(SELECT+" WHERE r.id_ocupacion=? FOR UPDATE OF r",s->s.setLong(1,id(id)));}
  public List<Reserva> listar(){return consultar(SELECT+" ORDER BY r.id_ocupacion",s->{});}
+ public List<Reserva> buscarPorPropietario(long id){return consultar(SELECT+" WHERE r.id_propietario_pactado=? ORDER BY r.id_ocupacion",s->s.setLong(1,id(id)));}
  public List<Reserva> buscarPorCliente(long id){return consultar(SELECT+" WHERE r.id_cliente=? ORDER BY r.id_ocupacion",s->s.setLong(1,id(id)));}
  public List<Reserva> buscarPorInmueble(long id){return consultar(SELECT+" WHERE o.id_inmueble=? ORDER BY r.id_ocupacion",s->s.setLong(1,id(id)));}
  public List<Reserva> buscarPorEstado(EstadoReserva e){return consultar(SELECT+" WHERE r.estado=? ORDER BY r.id_ocupacion",s->s.setString(1,e.name()));}

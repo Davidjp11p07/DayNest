@@ -3,3 +3,8 @@ db.url=jdbc:postgresql://localhost:5432/renta_inmuebles
 db.esquema=daynest
 db.usuario=postgres
 db.contrasena=CAMBIE_ESTA_CONTRASENA
+
+# Pool compartido; espera maxima para obtener una conexion.
+db.pool.maximo=10
+db.pool.minimo=1
+db.pool.esperaMs=10000

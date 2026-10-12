@@ -133,6 +133,8 @@ CREATE TABLE movimiento_pago (
 
 -- Moneda y beneficiario se obtienen de la reserva histórica.
 CREATE TABLE giro (
+  porcentaje_comision NUMERIC(5,4) NOT NULL DEFAULT 0 CHECK(porcentaje_comision >= 0 AND porcentaje_comision < 1),
+  monto_comision NUMERIC(16,2) NOT NULL DEFAULT 0 CHECK(monto_comision >= 0),
   id_giro BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   id_reserva BIGINT NOT NULL REFERENCES reserva(id_ocupacion) ON DELETE RESTRICT,
   id_admin_autorizador BIGINT REFERENCES administrador(id_usuario) ON DELETE RESTRICT,
@@ -408,8 +410,8 @@ BEGIN
   END IF;
   IF TG_OP='UPDATE' THEN
     IF OLD.estado='EJECUTADO' OR
-       (NEW.id_reserva,NEW.monto,NEW.clave_idempotencia)
-       IS DISTINCT FROM (OLD.id_reserva,OLD.monto,OLD.clave_idempotencia) THEN
+       (NEW.id_reserva,NEW.monto,NEW.clave_idempotencia,NEW.porcentaje_comision,NEW.monto_comision)
+       IS DISTINCT FROM (OLD.id_reserva,OLD.monto,OLD.clave_idempotencia,OLD.porcentaje_comision,OLD.monto_comision) THEN
       RAISE EXCEPTION 'Giro ejecutado o condiciones historicas inmutables';
     END IF;
     IF NEW.estado <> OLD.estado AND NOT (
@@ -425,8 +427,8 @@ BEGIN
     SELECT COALESCE(SUM(CASE WHEN clase='COBRO' THEN monto ELSE -monto END),0)
     INTO neto FROM movimiento_pago
     WHERE id_reserva=NEW.id_reserva AND estado='APROBADO';
-    IF neto<=0 OR NEW.monto<>neto THEN
-      RAISE EXCEPTION 'Giro debe igualar el neto cobrado (sin comision, por alcance)';
+    IF neto<=0 OR NEW.monto_comision<>round(neto*NEW.porcentaje_comision,2) OR NEW.monto<>neto-NEW.monto_comision THEN
+      RAISE EXCEPTION 'Giro y comision deben coincidir con el neto cobrado';
     END IF;
     IF NEW.id_admin_autorizador IS NULL OR NEW.ejecutado_en IS NULL THEN
       RAISE EXCEPTION 'Giro ejecutado requiere administrador y fecha';

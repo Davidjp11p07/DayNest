@@ -1,6 +1,6 @@
 # DayNest — Tu espacio, tus días.
 
-Aplicación académica web Java 17, Jakarta Servlet/JSP/JSTL, JDBC y PostgreSQL. Fuente conceptual vigente: `docs/modelo_er_daynest.svg`, con **diez entidades** y la relación RESERVA. Su transformación utiliza **13 tablas**, incluidas OCUPACION/BLOQUEO como extensión autorizada. [Trazabilidad, normalización y adaptación](docs/ADAPTACION_SVG.md). Pagos, devoluciones y giros **simulados**, sin banco ni pasarela real. No hay impuestos, descuentos, comisión ni conversión de moneda.
+Aplicación académica web Java 17, Jakarta Servlet/JSP/JSTL, JDBC y PostgreSQL. Fuente conceptual vigente: `docs/modelo_er_daynest.svg`, con **diez entidades** y la relación RESERVA. Su transformación utiliza **13 tablas**, incluidas OCUPACION/BLOQUEO como extensión autorizada. [Trazabilidad, normalización y adaptación](docs/ADAPTACION_SVG.md). Pagos, devoluciones y giros **simulados**, sin banco ni pasarela real. No hay impuestos, descuentos ni conversión de moneda. La comisión es configurable y se conserva en cada giro.
 
 ## Ejecutar en este equipo
 
@@ -85,7 +85,7 @@ Las fotografías son ilustrativas y se asignan por ID desde una lista de archivo
 | Vencimiento | 30 minutos para pagar; tarea local cada 60 segundos expira pendientes y finaliza estancias vencidas |
 | Cobros | movimiento_pago, clase COBRO/DEVOLUCION; PENDIENTE → APROBADO/RECHAZADO; claves idempotentes, moneda pactada, sin sobrecobro |
 | Devolución | ligada a un cobro aprobado de la misma reserva; cancelación pagada devuelve los cobros mediante simulación transaccional |
-| Giro | PENDIENTE → PROCESANDO → EJECUTADO/FALLIDO; solo tras finalizar, administrador autorizador, importe igual al neto cobrado, propietario histórico |
+| Giro | PENDIENTE → PROCESANDO → EJECUTADO/FALLIDO; solo tras finalizar, administrador autorizador, importe igual al neto cobrado menos comisión histórica, propietario histórico |
 | Historial | prohibido DELETE de reservas, movimientos y giros; intentos fallidos se conservan y permiten nuevo intento |
 
 Total = noches × precio pactado. Saldo = total − (cobros aprobados − devoluciones aprobadas). El medio elegido en la pantalla de pago es una opción de la simulación; el SQL definitivo no contiene columna de medio de pago. El botón de pago liquida el saldo restante. DAO/BD admiten varios movimientos y protegen sus importes.
@@ -145,3 +145,21 @@ La extensión autorizada añade solo `inmueble.es_rural` y `inmueble.cerca_mar`,
 | [Créditos de imágenes](docs/diseno/CREDITOS_IMAGENES.md) | Autores, fuentes y licencias de fotos, fuentes e iconos |
 
 Los informes de etapas y versiones superadas se retiraron de la documentación activa. Su copia y la documentación anterior a la limpieza están en `.tools/documentacion-retirada-20261010-033253/`.
+
+## Comisión configurable y conexiones
+
+`src/main/resources/negocio.properties` define `negocio.comision`: `0.0000` mantiene los giros sin comisión; `0.1000` descuenta el 10% del neto cobrado al generar un nuevo giro. Se permiten valores desde 0 inclusive hasta 1 exclusive, con hasta cuatro decimales. El descuento se redondea a dos decimales; el giro debe seguir siendo positivo. Reinicie Jetty después de cambiarlo.
+
+El porcentaje y el importe se guardan en cada giro. Los giros ya registrados mantienen sus condiciones; el cliente sigue pagando el total de la reserva. Las operaciones siguen siendo simuladas.
+
+Para una base existente, detenga Jetty y ejecute después de compilar:
+
+```powershell
+java -cp "target/classes;target/lib/*" co.edu.rentainmuebles.verification.MigrarComision --aplicar
+```
+
+El comando hace respaldo antes de aplicar `migrar-comision.sql` transaccionalmente, añade las columnas con cero para giros anteriores y actualiza el trigger financiero. Una instalación nueva ya las recibe desde `schema.sql`. Las migraciones/reversiones históricas deben ejecutarse antes de habilitar la comisión; no revierta el modelo SVG después de registrar giros con comisión.
+
+Las conexiones usan HikariCP, con configuración opcional en `db.properties`: `db.pool.maximo=10`, `db.pool.minimo=1`, `db.pool.esperaMs=10000`. La configuración se carga al crear el pool; las conexiones se devuelven al cerrar y el pool se cierra al detener la aplicación. Cada préstamo restablece esquema y zona horaria para mantener aisladas las pruebas. Las reservas del propietario se filtran en SQL por el propietario pactado histórico.
+
+Los diagramas y el informe PDF describen la entrega académica anterior sin comisión; esta sección documenta la extensión posterior.

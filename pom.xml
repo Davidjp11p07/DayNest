@@ -16,6 +16,7 @@
         <daynest.http.port>8080</daynest.http.port>
     </properties>
     <dependencies>
+        <dependency><groupId>com.zaxxer</groupId><artifactId>HikariCP</artifactId><version>7.1.0</version></dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId>
             <version>5.11.4</version><scope>test</scope>
@@ -65,7 +66,7 @@
                 <groupId>org.apache.maven.plugins</groupId><artifactId>maven-dependency-plugin</artifactId>
                 <version>3.8.1</version>
                 <executions><execution><id>driver-local</id><phase>package</phase><goals><goal>copy-dependencies</goal></goals>
-                    <configuration><includeArtifactIds>postgresql</includeArtifactIds><outputDirectory>${project.build.directory}/lib</outputDirectory></configuration>
+                    <configuration><includeArtifactIds>postgresql,HikariCP,slf4j-api</includeArtifactIds><outputDirectory>${project.build.directory}/lib</outputDirectory></configuration>
                 </execution></executions>
             </plugin>
             <plugin>
@@ -86,6 +87,7 @@
                     <webApp><contextPath>/DayNest</contextPath></webApp>
                 </configuration>
                 <dependencies>
+        <dependency><groupId>com.zaxxer</groupId><artifactId>HikariCP</artifactId><version>7.1.0</version></dependency>
                     <dependency>
                         <groupId>org.eclipse.jetty.ee10</groupId><artifactId>jetty-ee10-apache-jsp</artifactId>
                         <version>${jetty.version}</version>

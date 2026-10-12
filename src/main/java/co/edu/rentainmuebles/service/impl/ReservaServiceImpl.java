@@ -11,7 +11,7 @@ public final class ReservaServiceImpl extends ServicioBase implements ReservaSer
     @Override public List<Reserva> listarRecibidas(long propietarioId) {
         return ejecutar(d -> {
             actor(d,propietarioId,Rol.PROPIETARIO);
-            return d.reservas().listar().stream().filter(r->r.getPropietarioPactado().getId()==propietarioId).toList();
+            return d.reservas().buscarPorPropietario(propietarioId);
         });
     }
 

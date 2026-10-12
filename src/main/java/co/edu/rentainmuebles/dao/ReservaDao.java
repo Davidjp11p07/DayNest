@@ -13,6 +13,7 @@ public interface ReservaDao {
     List<Reserva> listar();
     Reserva crear(Reserva reserva);
     void actualizarEstado(long id, EstadoReserva estado);
+    List<Reserva> buscarPorPropietario(long propietarioId);
     List<Reserva> buscarPorCliente(long clienteId);
     List<Reserva> buscarPorInmueble(long inmuebleId);
     List<Reserva> buscarPorEstado(EstadoReserva estado);

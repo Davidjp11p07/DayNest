@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys,json,datetime,re,subprocess
+from urllib.parse import urlparse, parse_qs
 ROOT=Path(__file__).resolve().parents[3];sys.path.insert(0,str(ROOT/'.tools/daynest-python'))
 from playwright.sync_api import sync_playwright
 BASE='http://localhost:8081/DayNest'
@@ -27,7 +28,7 @@ with sync_playwright() as pw:
   page.locator('button[type=submit]').filter(has_text='Guardar inmueble').click();page.wait_for_load_state('networkidle');assert '/propietario/inmuebles' in page.url,page.locator('main').inner_text()
  report['checks'].append('Publicación real de tres clasificaciones en esquema aislado con CSRF')
  go('/buscar?tipo=CABAÑA&rural=true');assert page.locator('.property-card').count()==1
- href=page.locator('.property-card h3 a').get_attribute('href');cabana_id=href.split('id=')[1]
+ href=page.locator('.property-card h3 a').get_attribute('href');cabana_id=parse_qs(urlparse(href).query)['id'][0]
  go('/propietario/editar?id='+cabana_id);assert page.locator('[name=tipo]').input_value()=='CABAÑA';assert page.locator('[name=esRural]').input_value()=='true';assert page.locator('[name=cercaMar]').input_value()=='false'
  page.locator('[name=precio]').fill('195000');page.locator('button[type=submit]').filter(has_text='Guardar inmueble').click();page.wait_for_load_state('networkidle');assert '/propietario/inmuebles' in page.url
  report['checks'].append('Edición conserva valores sí/no, tipo y CSRF')
@@ -68,7 +69,7 @@ with sync_playwright() as pw:
  go('/login');page.locator('[name=correo]').fill('cliente1@renta.test');page.locator('[name=password]').fill('Cliente2026!');page.locator('form[action$="/login"] button[type=submit]').click();page.wait_for_load_state('networkidle')
  # Reservation/payment regression covered by 65 JUnit cases; HTTP test checks date filtering and detail route.
  day=datetime.date.today()+datetime.timedelta(days=40);end=day+datetime.timedelta(days=3)
- go(f'/buscar?tipo=CABAÑA&rural=true&entrada={day}&salida={end}&capacidad=4');assert page.locator('.property-card').count()==1;page.locator('.property-card h3 a').click();page.wait_for_load_state('networkidle');assert '/inmueble?id='+cabana_id in page.url
+ go(f'/buscar?tipo=CABAÑA&rural=true&entrada={day}&salida={end}&capacidad=4');assert page.locator('.property-card').count()==1;page.locator('.property-card h3 a').click();page.wait_for_load_state('networkidle');assert urlparse(page.url).path.endswith('/inmueble') and parse_qs(urlparse(page.url).query).get('id')==[cabana_id]
  report['checks'].append('Fechas, capacidad y acceso al detalle desde combinación de filtros')
  # Anchors also work when JavaScript is disabled.
  nojs=browser.new_context(java_script_enabled=False);p2=nojs.new_page();p2.goto(BASE+'/inicio?mar=true');p2.locator('.category-list a').filter(has_text='Cabañas').click();assert 'mar=true' in p2.url and 'tipo=' in p2.url;nojs.close();report['checks'].append('Enlaces funcionan sin JavaScript conservando parámetros previos')

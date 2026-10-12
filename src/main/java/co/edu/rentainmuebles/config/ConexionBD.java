@@ -1,43 +1,67 @@
 package co.edu.rentainmuebles.config;
 
 import co.edu.rentainmuebles.dao.DaoException;
-import java.io.InputStream;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import java.io.*;
+import java.sql.*;
 import java.util.Properties;
 
-/** Cada llamada entrega una conexión nueva, que debe cerrarse con try-with-resources. */
+/** Pool compartido; close() devuelve la conexion. El esquema se fija en cada prestamo. */
 public final class ConexionBD {
+    private static HikariDataSource pool;
+    private static String esquemaBase;
     private ConexionBD() { }
-    public static Connection abrir() {
-        Properties propiedades = new Properties();
+
+    private static synchronized HikariDataSource fuente() {
+        if (pool != null && !pool.isClosed()) return pool;
+        Properties p = new Properties();
         try (InputStream entrada = ConexionBD.class.getClassLoader().getResourceAsStream("db.properties")) {
-            if (entrada == null) { throw new DaoException("No se encontró db.properties en el classpath."); }
-            propiedades.load(entrada);
-            Connection conexion = DriverManager.getConnection(requerida(propiedades, "db.url"),
-                    requerida(propiedades, "db.usuario"), requerida(propiedades, "db.contrasena"));
-            // JUnit aísla sus tablas mediante una propiedad de JVM, sin cambiar credenciales.
-            String esquema = System.getProperty("renta.db.schema",propiedades.getProperty("db.esquema","public"));
-            try {
-                if (esquema != null) {
-                    if (!esquema.matches("[a-z][a-z0-9_]{0,62}")) { throw new DaoException("Nombre de esquema de pruebas inválido."); }
-                    try(java.sql.Statement s=conexion.createStatement()){s.execute("SET search_path TO \""+esquema+"\",public");}
-                }
-                try(java.sql.Statement s=conexion.createStatement()){s.execute("SET TIME ZONE 'America/Bogota'");}
-                return conexion;
-            } catch (SQLException | RuntimeException e) {
-                try { conexion.close(); } catch (SQLException cierre) { e.addSuppressed(cierre); }
-                throw e;
-            }
-        } catch (IOException | SQLException e) {
-            throw new DaoException("No se pudo abrir la conexión PostgreSQL; revise db.properties y el servidor.", e);
+            if (entrada == null) throw new DaoException("No se encontro db.properties en el classpath.");
+            p.load(entrada);
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl(requerida(p,"db.url"));
+            config.setUsername(requerida(p,"db.usuario"));
+            config.setPassword(requerida(p,"db.contrasena"));
+            config.setMaximumPoolSize(Integer.parseInt(p.getProperty("db.pool.maximo","10")));
+            config.setMinimumIdle(Integer.parseInt(p.getProperty("db.pool.minimo","1")));
+            config.setConnectionTimeout(Long.parseLong(p.getProperty("db.pool.esperaMs","10000")));
+            config.setPoolName("DayNest");
+            config.addDataSourceProperty("tcpKeepAlive","true");
+            esquemaBase = p.getProperty("db.esquema","public");
+            pool = new HikariDataSource(config);
+            return pool;
+        } catch (IOException | IllegalArgumentException e) {
+            throw new DaoException("Revise db.properties y la configuracion del pool.",e);
         }
     }
+
+    public static Connection abrir() {
+        HikariDataSource fuente = fuente();
+        String esquema = System.getProperty("renta.db.schema",esquemaBase);
+        if (!esquema.matches("[a-z][a-z0-9_]{0,62}")) throw new DaoException("Nombre de esquema invalido.");
+        try {
+            Connection c = fuente.getConnection();
+            try (Statement s = c.createStatement()) {
+                s.execute("SET search_path TO \""+esquema+"\",public");
+                s.execute("SET TIME ZONE 'America/Bogota'");
+                return c;
+            } catch (SQLException | RuntimeException e) {
+                try { c.close(); } catch (SQLException cierre) { e.addSuppressed(cierre); }
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw new DaoException("No se pudo obtener una conexion PostgreSQL.",e);
+        }
+    }
+
+    public static synchronized void cerrar() {
+        if (pool != null) { pool.close(); pool = null; }
+    }
+
     private static String requerida(Properties p, String clave) {
         String valor = p.getProperty(clave);
-        if (valor == null || valor.isBlank()) { throw new DaoException("Falta la propiedad " + clave); }
+        if (valor == null || valor.isBlank()) throw new DaoException("Falta la propiedad " + clave);
         return valor;
     }
 }
