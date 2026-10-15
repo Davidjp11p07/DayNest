@@ -51,7 +51,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File docs/diagramas/Renderizar-Di
   -JavaExe $javaDiagramas -Formato png -Smetana
 ```
 
-El verificador escribe [VERIFICACION.md](VERIFICACION.md). Comprueba nombres y columnas con claves; no demuestra firmas completas ni comportamiento. El renderizador ejecuta `-checkonly` y `-failfast2`, y comprueba una imagen por fuente. Condiciones y relaciones también se revisaron contra código. Ningún script modifica PostgreSQL.
+El verificador muestra su resultado en la consola. Comprueba nombres y columnas con claves; no demuestra firmas completas ni comportamiento. El renderizador ejecuta `-checkonly` y `-failfast2`, y comprueba una imagen por fuente. Condiciones y relaciones también se revisaron contra código. Ningún script modifica PostgreSQL.
 
 En otro sistema operativo, el archivo 02 requiere Graphviz disponible localmente; puede indicarlo con `-DotExe`. El `!undef USAR_SMETANA` de esa fuente conserva su motor alternativo aunque el resto se genere con `-Smetana`.
 

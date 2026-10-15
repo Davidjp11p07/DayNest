@@ -13,7 +13,7 @@ public final class PagoServiceImpl extends ServicioBase implements PagoService {
     @Override public Pago registrar(long clienteId, long reservaId, MetodoPago metodo, String referencia) {
         return ejecutar(d -> {
             actor(d,clienteId,Rol.CLIENTE); Reserva r = reserva(d,reservaId); propia(r,clienteId);
-            if(r.getExpiraEn().toInstant().isBefore(reloj.instant()))throw new NegocioException("La reserva venció; cree una nueva.");
+            if(!r.getExpiraEn().toInstant().isAfter(reloj.instant()))throw new NegocioException("La reserva venció; cree una nueva.");
             if (r.getEstado() != EstadoReserva.PENDIENTE_PAGO) { throw new NegocioException("Solo se pueden pagar reservas pendientes."); }
             if (!r.getPeriodo().getEntrada().isAfter(hoy())) { throw new NegocioException("El pago debe realizarse antes del día de entrada."); }
             if(d.reservas().existeCruce(r.getInmueble().getId(),r.getPeriodo(),r.getId()))

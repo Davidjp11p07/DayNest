@@ -29,7 +29,7 @@ public final class AdministradorServlet extends HttpServlet {
                 case "/reservas" -> {
                     r.setAttribute("reservas",s.listarReservas(usuario,Web.estado(r,"estado",EstadoReserva.class)));
                     var hoy=Web.servicios(r).hoy();
-                    var giradas=s.listarGiros(usuario,null).stream().map(g->g.getReserva().getId()).collect(java.util.stream.Collectors.toSet());
+                    var giradas=s.listarGiros(usuario,null).stream().filter(g->g.getEstado()!=EstadoGiro.FALLIDO).map(g->g.getReserva().getId()).collect(java.util.stream.Collectors.toSet());
                     var pagadas=s.listarPagos(usuario,null).stream().filter(x->x.getEstado()==EstadoPago.APROBADO)
                             .collect(java.util.stream.Collectors.groupingBy(x->x.getReserva().getId(),java.util.stream.Collectors.reducing(BigDecimal.ZERO,x->x.getClase().equals("COBRO")?x.getMonto():x.getMonto().negate(),BigDecimal::add)));
                     r.setAttribute("girables",s.listarReservas(usuario,null).stream().filter(x->!x.getPeriodo().getSalida().isAfter(hoy)&&(x.getEstado()==EstadoReserva.CONFIRMADA||x.getEstado()==EstadoReserva.FINALIZADA)&&pagadas.getOrDefault(x.getId(),BigDecimal.ZERO).compareTo(x.getTotal())>=0&&!giradas.contains(x.getId())).map(Reserva::getId).toList());

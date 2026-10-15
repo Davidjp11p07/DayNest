@@ -209,6 +209,7 @@ BEGIN
   END IF;
   SELECT * INTO i FROM inmueble WHERE id_inmueble = o.id_inmueble FOR SHARE;
   IF TG_OP = 'INSERT' THEN
+    NEW.expira_en := NEW.creada_en + INTERVAL '30 minutes';
     IF i.estado <> 'PUBLICADO' THEN RAISE EXCEPTION 'Inmueble no publicado'; END IF;
     IF o.fecha_inicio < CURRENT_DATE OR NEW.expira_en <= clock_timestamp() THEN
       RAISE EXCEPTION 'Fechas de reserva o expiracion no futuras';
@@ -240,6 +241,7 @@ BEGIN
         (OLD.estado = 'CONFIRMADA' AND NEW.estado IN ('FINALIZADA','CANCELADA'))
       ) THEN RAISE EXCEPTION 'Transicion de estado de reserva no permitida'; END IF;
       IF NEW.estado = 'CONFIRMADA' THEN
+        IF NEW.expira_en <= clock_timestamp() THEN RAISE EXCEPTION 'La reserva vencio; no puede confirmarse'; END IF;
         SELECT COALESCE(SUM(CASE WHEN clase='COBRO' THEN monto ELSE -monto END),0)
           INTO dinero_aprobado FROM movimiento_pago
           WHERE id_reserva = NEW.id_ocupacion AND estado = 'APROBADO';
@@ -356,6 +358,9 @@ BEGIN
   END IF;
   -- Bloqueo de la reserva serializa las validaciones financieras concurrentes.
   SELECT * INTO r FROM reserva WHERE id_ocupacion = NEW.id_reserva FOR UPDATE;
+  IF NEW.clase='COBRO' AND NEW.estado='APROBADO' AND r.estado='PENDIENTE_PAGO' AND r.expira_en<=clock_timestamp() THEN
+    RAISE EXCEPTION 'La reserva vencio; no puede aprobarse el cobro';
+  END IF;
   IF NEW.clase='DEVOLUCION' THEN
     SELECT * INTO pago_origen FROM movimiento_pago WHERE id_movimiento=NEW.id_cobro_origen;
     IF NOT FOUND OR pago_origen.clase<>'COBRO' OR pago_origen.estado<>'APROBADO'
@@ -420,6 +425,10 @@ BEGIN
     ) THEN RAISE EXCEPTION 'Transicion de giro no permitida'; END IF;
   END IF;
   SELECT * INTO r FROM reserva WHERE id_ocupacion=NEW.id_reserva FOR UPDATE;
+  SELECT (o.fecha_fin-o.fecha_inicio)*r.precio_noche_pactado INTO neto FROM ocupacion o WHERE o.id_ocupacion=r.id_ocupacion;
+  IF NEW.monto_comision<>round(neto*NEW.porcentaje_comision,2) OR NEW.monto<>neto-NEW.monto_comision THEN
+    RAISE EXCEPTION 'Desglose de giro inconsistente con reserva';
+  END IF;
   IF NEW.estado='EJECUTADO' THEN
     IF r.estado<>'FINALIZADA' THEN
       RAISE EXCEPTION 'Solo se gira una reserva finalizada';

@@ -13,7 +13,7 @@ DayNest es una aplicación web en Java conectada a PostgreSQL que permite public
 
 Este informe documenta el código actual y reúne los diagramas de casos de uso, clases, interacción mediante secuencias y actividades exigidos por el enunciado. Añade el modelo de base de datos como soporte del diseño. Los PDF de clase se utilizan como guía de notación y fichas; no constituyen una rúbrica exhaustiva del profesor.
 
-El alcance financiero es académico y local: aprobar un cobro, devolverlo o ejecutar un giro registra una simulación en la base de datos. No hay pasarela, banco, comisión ni conversión monetaria. Las fotografías son ilustrativas locales asignadas por identificador; no hay subida de fotos, reseñas, recuperación de contraseña o edición de perfil implementadas. La clasificación tipo/campo/mar sí es persistida, puede estar pendiente y se modifica por el propietario.
+El alcance financiero es académico y local: aprobar un cobro, devolverlo o ejecutar un giro registra una simulación en la base de datos. No hay pasarela, banco ni conversión monetaria. La comisión es configurable (10% en la configuración actual) y su porcentaje e importe se conservan en cada giro. Las fotografías son ilustrativas locales asignadas por identificador; no hay subida de fotos, reseñas, recuperación de contraseña o edición de perfil implementadas. La clasificación tipo/campo/mar sí es persistida, puede estar pendiente y se modifica por el propietario.
 
 ## 2. Requisitos y trazabilidad
 
@@ -68,7 +68,7 @@ El catálogo precargado contempla 32 capitales colombianas y Cartagena, Murcia, 
 | Confirmación | Pago completo; el botón liquida el saldo y simula aprobación |
 | Cancelación | Solo pendiente/confirmada antes de entrada; libera ocupación y simula devolución si corresponde |
 | Beneficiario | Propietario pactado histórico; un cambio posterior de dueño no lo reemplaza |
-| Giro | Salida cumplida, reserva confirmada/finalizada, pago completo y ausencia de giro vigente; neto sin comisión |
+| Giro | Salida cumplida, reserva confirmada/finalizada, pago completo y ausencia de giro vigente; neto menos comisión histórica |
 | Clasificación | Tipo y entornos opcionales; NULL es pendiente, no se deduce de ubicación/fotos |
 | Historial | No se borran contratos y finanzas; public conserva el archivo del modelo anterior |
 
@@ -679,7 +679,7 @@ Una precondición indica cuándo el caso puede terminar con éxito; el sistema v
 | --- | --- | --- |
 | 1 | Selecciona una reserva girable e indica referencia opcional. | Valida administrador, bloquea reserva y consulta giro vigente y neto aprobado. |
 | 2 | Confirma generar giro. | Comprueba salida, estado y pago completo; si seguía CONFIRMADA actualiza a FINALIZADA. |
-| 3 | Revisa el resultado. | Toma propietario pactado histórico y crea giro PENDIENTE → PROCESANDO → EJECUTADO con neto sin comisión; confirma transacción. |
+| 3 | Revisa el resultado. | Toma propietario pactado histórico y crea giro PENDIENTE → PROCESANDO → EJECUTADO con neto menos comisión histórica; confirma transacción. |
 
 **Alternativas y errores:** 1a. Giro vigente ya existente: rechazar. 2a. Estancia futura, reserva no válida o pago incompleto: rechazar. 3a. Referencia duplicada o restricción incumplida: rollback. BD/DAO conservan intentos FALLIDO y admiten nuevo intento, pero el botón implementa simulación exitosa; no existe integración bancaria.
 

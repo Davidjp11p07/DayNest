@@ -3,9 +3,7 @@ import co.edu.rentainmuebles.SoportePostgres;import co.edu.rentainmuebles.config
 class ModeloProfesorTest extends SoportePostgres {
  void sql(String texto)throws SQLException{try(Connection c=ConexionBD.abrir();Statement s=c.createStatement()){s.execute(texto);}}
  @Test void expiraPendienteYLibera()throws Exception{
-  var expira=OffsetDateTime.now().plusSeconds(2);
-  Reserva r=reservas.crear(new Reserva(null,cliente,inmueble,new PeriodoEstadia(HOY.plusDays(10),HOY.plusDays(13)),2,inmueble.getPrecioPorNoche(),EstadoReserva.PENDIENTE_PAGO,java.time.LocalDateTime.now(ZONA),propietario,"COP",expira));
-  Thread.sleep(2200);new CicloReservas().ejecutar();assertEquals(EstadoReserva.EXPIRADA,reservas.buscarPorId(r.getId()).orElseThrow().getEstado());assertNotNull(reservaFutura());
+  Reserva r=reservaFutura();vencerReservaParaPrueba(r.getId());new CicloReservas().ejecutar();assertEquals(EstadoReserva.EXPIRADA,reservas.buscarPorId(r.getId()).orElseThrow().getEstado());assertNotNull(reservaFutura());
  }
  @Test void noDevuelveMientrasConfirmada(){Reserva r=reservaPagada();Pago cobro=pagos.listarPorReserva(r.getId()).get(0);assertThrows(DaoException.class,()->pagos.crear(new Pago(null,r,cobro.getMonto(),null,r.getFechaCreacion(),EstadoPago.APROBADO,"DEVOLUCION",cobro.getId(),"dev-invalida")));}
  @Test void noDevuelveCobroDeOtraReserva(){Reserva a=reservaPagada();Reserva b=nuevaReserva(HOY.plusDays(20),HOY.plusDays(23));servicios.reservas.cancelar(cliente.getId(),b.getId());Pago cobro=pagos.listarPorReserva(a.getId()).get(0);assertThrows(DaoException.class,()->pagos.crear(new Pago(null,b,cobro.getMonto(),null,b.getFechaCreacion(),EstadoPago.APROBADO,"DEVOLUCION",cobro.getId(),"dev-ajena")));}

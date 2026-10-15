@@ -123,7 +123,7 @@ note bottom of FiltrosInmueble
 end note
 note bottom of GiroServiceImpl
   PoliticaComision se conserva por compatibilidad.
-  generar() opera sin comisión; pago y giro son simulaciones locales.
+  generar() aplica comisión configurable; pago y giro son simulaciones locales.
 end note
 class CiudadDaoJdbc
 InmuebleServiceImpl ..> CiudadDaoJdbc : resolver ubicación

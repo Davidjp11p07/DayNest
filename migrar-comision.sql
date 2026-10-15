@@ -27,6 +27,10 @@ BEGIN
     ) THEN RAISE EXCEPTION 'Transicion de giro no permitida'; END IF;
   END IF;
   SELECT * INTO r FROM reserva WHERE id_ocupacion=NEW.id_reserva FOR UPDATE;
+  SELECT (o.fecha_fin-o.fecha_inicio)*r.precio_noche_pactado INTO neto FROM ocupacion o WHERE o.id_ocupacion=r.id_ocupacion;
+  IF NEW.monto_comision<>round(neto*NEW.porcentaje_comision,2) OR NEW.monto<>neto-NEW.monto_comision THEN
+    RAISE EXCEPTION 'Desglose de giro inconsistente con reserva';
+  END IF;
   IF NEW.estado='EJECUTADO' THEN
     IF r.estado<>'FINALIZADA' THEN
       RAISE EXCEPTION 'Solo se gira una reserva finalizada';

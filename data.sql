@@ -1,5 +1,4 @@
 BEGIN;
-INSERT INTO usuario(nombre_completo,correo_normalizado,contrasena_hash) VALUES ('Ana Administración','admin@renta.test','pbkdf2-sha256$600000$mrYgkjw9i6tYTNfrgNvPuw==$q01eUpoj7Gyyfq6gGUbNysnNPMRQVvq4W7lfpASHZfE=') ON CONFLICT DO NOTHING;
 INSERT INTO usuario(nombre_completo,correo_normalizado,contrasena_hash) VALUES ('Paula Gómez','propietario1@renta.test','pbkdf2-sha256$600000$iGW9jpWWf7EBPl3m3PXuXw==$eZ5rZtU97lVsMDKORel4IyyXzfSmXsLxanpNxDP8YcU=') ON CONFLICT DO NOTHING;
 INSERT INTO usuario(nombre_completo,correo_normalizado,contrasena_hash) VALUES ('Luis Torres','propietario2@renta.test','pbkdf2-sha256$600000$uH+VUzgSrLf29zn7AK80yw==$rnaIJBXIPM86ZzIEcvLvkYdF9VWakG8R4sG3AkO1SBg=') ON CONFLICT DO NOTHING;
 INSERT INTO usuario(nombre_completo,correo_normalizado,contrasena_hash) VALUES ('María Ruiz','propietario3@renta.test','pbkdf2-sha256$600000$3PMPfDTvMGrQSAKpX4kFxg==$gBf6NwR02q7VoArdMpQfbwtia2l9uvzPU15APCIgQrI=') ON CONFLICT DO NOTHING;
@@ -9,7 +8,6 @@ INSERT INTO usuario(nombre_completo,correo_normalizado,contrasena_hash) VALUES (
 INSERT INTO usuario(nombre_completo,correo_normalizado,contrasena_hash) VALUES ('Cliente 4','cliente4@renta.test','pbkdf2-sha256$600000$XxoBHlwdJc8czszViNLC1w==$9rv+bULyvhSPOefch/aySqIhIPRhxFv6ntbXpyHRtqE=') ON CONFLICT DO NOTHING;
 INSERT INTO propietario(id_usuario) SELECT id_usuario FROM usuario WHERE correo_normalizado IN ('propietario1@renta.test','propietario2@renta.test','propietario3@renta.test') ON CONFLICT DO NOTHING;
 INSERT INTO cliente(id_usuario) SELECT id_usuario FROM usuario WHERE correo_normalizado IN ('cliente1@renta.test','cliente2@renta.test','cliente3@renta.test','cliente4@renta.test','propietario1@renta.test') ON CONFLICT DO NOTHING;
-INSERT INTO administrador SELECT id_usuario FROM usuario WHERE correo_normalizado='admin@renta.test' ON CONFLICT DO NOTHING;
 -- Catálogo oficial: 32 capitales; Bogotá pertenece al Distrito Capital, no a Cundinamarca.
 INSERT INTO pais(nombre,codigo_iso2) VALUES ('Colombia','CO'),('España','ES') ON CONFLICT DO NOTHING;
 INSERT INTO division_administrativa(id_pais,nombre,codigo_oficial) SELECT id_pais,'Amazonas','91' FROM pais WHERE codigo_iso2='CO' ON CONFLICT DO NOTHING;

@@ -38,6 +38,6 @@ else Giro permitido
   s --> tx : resultado; commit
   s --> admin : Giro
   admin --> web : Giro
-  web --> u : Confirmación de giro simulado sin comisión
+  web --> u : Confirmación de giro simulado con comisión histórica
 end
 @enduml

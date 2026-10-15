@@ -40,7 +40,7 @@ java -cp "target/classes;target/lib/*" co.edu.rentainmuebles.verification.Inicia
 java -cp "target/classes;target/lib/*" co.edu.rentainmuebles.verification.InspeccionarBD
 ```
 
-InicializarBD crea el esquema nuevo y ejecuta schema.sql/data.sql transaccionalmente. Rechaza un esquema existente. **schema.sql no es reejecutable**: contiene CREATE TABLE/FUNCTION de la transformación adaptada al SVG. **data.sql y geografia.sql son reejecutables** y evitan duplicar el catálogo y los alojamientos demo. usuario almacena correo_normalizado canónico; movimientos y giros obtienen su moneda de la reserva histórica, sin duplicarla.
+InicializarBD crea el esquema nuevo y ejecuta schema.sql/data.sql/admin-demo.sql transaccionalmente. Rechaza un esquema existente. **schema.sql no es reejecutable**: contiene CREATE TABLE/FUNCTION de la transformación adaptada al SVG. **data.sql y geografia.sql son reejecutables** y evitan duplicar el catálogo y los alojamientos demo. usuario almacena correo_normalizado canónico; movimientos y giros obtienen su moneda de la reserva histórica, sin duplicarla.
 
 Para adaptar una instalación con el modelo anterior de trece tablas, el procedimiento incremental es:
 
@@ -92,7 +92,7 @@ Total = noches × precio pactado. Saldo = total − (cobros aprobados − devolu
 
 Los bloqueos se crean/liberan en **Propietario → Mis inmuebles → Bloquear / liberar fechas**. Las fechas/inmueble/tipo de ocupación no se reescriben. Cambiar el dueño no cambia el propietario pactado de las reservas.
 
-## Cuentas demo
+## Cuentas demo de una instalación nueva
 
 | Rol | Correo | Contraseña |
 | --- | --- | --- |
@@ -140,7 +140,6 @@ La extensión autorizada añade solo `inmueble.es_rural` y `inmueble.cerca_mar`,
 | [Adaptación al SVG](docs/ADAPTACION_SVG.md) | Trazabilidad conceptual, normalización, migración y su verificación histórica |
 | [Filtros de alojamientos](docs/FILTROS_INMUEBLES.md) | Clasificar inmuebles y entender los filtros actuales y su migración |
 | [Diagramas](docs/diagramas/README.md) | Localizar las fuentes PlantUML y regenerarlas |
-| [Comprobación de fuentes](docs/diagramas/VERIFICACION.md) | Registro de comprobación de los diagramas actuales y límites de la validación |
 | [Diseño DayNest](docs/diseno/DISENO.md) | Colores, fuentes, componentes y reglas visuales |
 | [Créditos de imágenes](docs/diseno/CREDITOS_IMAGENES.md) | Autores, fuentes y licencias de fotos, fuentes e iconos |
 
@@ -162,4 +161,18 @@ El comando hace respaldo antes de aplicar `migrar-comision.sql` transaccionalmen
 
 Las conexiones usan HikariCP, con configuración opcional en `db.properties`: `db.pool.maximo=10`, `db.pool.minimo=1`, `db.pool.esperaMs=10000`. La configuración se carga al crear el pool; las conexiones se devuelven al cerrar y el pool se cierra al detener la aplicación. Cada préstamo restablece esquema y zona horaria para mantener aisladas las pruebas. Las reservas del propietario se filtran en SQL por el propietario pactado histórico.
 
-Los diagramas y el informe PDF describen la entrega académica anterior sin comisión; esta sección documenta la extensión posterior.
+Los diagramas y el informe incluyen la comisión configurable.
+
+## Integridad y carga de cuentas
+
+La recarga de `data.sql` no crea administradores. `admin-demo.sql` solo se ejecuta en la inicialización explícita de una instalación demo nueva o un reinicio explícito; rechaza una base que ya tenga administrador. Los cambios de credenciales locales permanecen en PostgreSQL y no se publican. Use el administrador configurado en su instalación.
+
+PostgreSQL establece la expiración a 30 minutos desde la creación y rechaza cobros aprobados o confirmaciones tardías de reservas pendientes. La tarea periódica sigue liberando fechas. El desglose del giro es consistente en todos sus estados; los fallidos permiten otro intento.
+
+Para una instalación existente, detenga Jetty, compile y ejecute:
+
+```powershell
+java -cp "target/classes;target/lib/*" co.edu.rentainmuebles.verification.CorregirIntegridad --aplicar
+```
+
+El comando hace respaldo previo y actualiza los controles transaccionalmente. Si hay giros históricos con importes inconsistentes, rechaza la migración sin modificarlos. No altera las fechas ni importes históricos de las reservas existentes. Las nuevas reservas reciben el plazo fijo; la comisión se aplica al generar cada nuevo giro.

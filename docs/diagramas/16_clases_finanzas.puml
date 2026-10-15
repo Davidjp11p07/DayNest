@@ -27,6 +27,10 @@ class Pago {
   +getEstado(...) : EstadoPago
 }
 class Giro {
+  -porcentajeComision : BigDecimal
+  -montoComision : BigDecimal
+  +getPorcentajeComision(...) : BigDecimal
+  +getMontoComision(...) : BigDecimal
   -propietario : Propietario
   -estado : EstadoGiro
   -administradorId : Long
@@ -58,7 +62,7 @@ note bottom of Pago
 end note
 note bottom of Giro
   Beneficiario y moneda derivados del contrato histórico.
-  El giro normal simulado se ejecuta por el neto sin comisión.
+  El giro normal simulado se ejecuta por el neto menos comisión histórica.
 end note
 }
 legend bottom

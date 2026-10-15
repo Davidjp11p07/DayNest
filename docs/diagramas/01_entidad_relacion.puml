@@ -103,6 +103,8 @@ entity "MOVIMIENTO_PAGO\n(movimiento_pago)" as movimiento_pago {
 }
 ' @sql-table giro
 entity "GIRO\n(giro)" as giro {
+  * porcentaje_comision : NUMERIC(5,4)
+  * monto_comision : NUMERIC(16,2)
   * id_giro : BIGINT <<PK>>
   * id_reserva : BIGINT <<FK reserva.id_ocupacion>>
   id_admin_autorizador : BIGINT <<FK administrador.id_usuario>>

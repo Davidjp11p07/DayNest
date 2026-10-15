@@ -61,6 +61,18 @@ public abstract class SoportePostgres {
         inmueble=inmuebles.crear(new Inmueble(null,propietario,"Casa de prueba","Bogotá","Calle 10","Descripción de prueba",4,new BigDecimal("150000"),EstadoInmueble.PUBLICADO));
         servicios=conReloj(RELOJ);
     }
+    protected void vencerReservaParaPrueba(long id) throws Exception {
+        try(Connection c=ConexionBD.abrir()) {
+            if(!c.getSchema().matches("renta_test_[a-f0-9]{32}")) throw new IllegalStateException("Fixture fuera de pruebas");
+            c.setAutoCommit(false);
+            try(Statement t=c.createStatement()) {
+                t.execute("ALTER TABLE reserva DISABLE TRIGGER tg_validar_reserva");
+                try(PreparedStatement q=c.prepareStatement("UPDATE reserva SET creada_en=clock_timestamp()-interval '31 minutes',expira_en=clock_timestamp()-interval '1 minute' WHERE id_ocupacion=?")){q.setLong(1,id);q.executeUpdate();}
+                t.execute("SET CONSTRAINTS ALL IMMEDIATE");
+                t.execute("ALTER TABLE reserva ENABLE TRIGGER tg_validar_reserva");c.commit();
+            }catch(Exception e){c.rollback();throw e;}
+        }
+    }
     protected Servicios conReloj(Clock reloj) { return new Servicios(unidad,reloj,new PoliticaComisionPorcentaje(BigDecimal.ZERO)); }
     protected Reserva nuevaReserva(LocalDate entrada,LocalDate salida) { return servicios.reservas.crear(cliente.getId(),inmueble.getId(),entrada,salida,2); }
     protected Reserva reservaFutura() { return nuevaReserva(HOY.plusDays(10),HOY.plusDays(13)); }

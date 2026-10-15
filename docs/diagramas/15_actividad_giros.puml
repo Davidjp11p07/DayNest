@@ -16,7 +16,7 @@ pago completo y sin giro vigente?) then (sí)
     :Actualizar a FINALIZADA;
   endif
   :Tomar propietario pactado histórico;
-  :Registrar giro por neto cobrado sin comisión;
+  :Registrar giro por neto cobrado menos comisión histórica;
   :Cambiar PENDIENTE a PROCESANDO y EJECUTADO
 con administrador y fecha;
   :Confirmar transacción;
