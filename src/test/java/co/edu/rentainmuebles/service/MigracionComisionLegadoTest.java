@@ -11,8 +11,8 @@ class MigracionComisionLegadoTest extends SoportePostgres {
   Reserva r=reservaPagada();alFinalizar(r);Giro g=servicios.giros.generar(admin.getId(),r.getId(),null);
   try(Connection c=ConexionBD.abrir();Statement s=c.createStatement()) {
    s.execute("ALTER TABLE giro DROP COLUMN porcentaje_comision, DROP COLUMN monto_comision");
-   s.execute(Files.readString(Path.of("migrar-comision.sql")));
-   s.execute(Files.readString(Path.of("migrar-comision.sql")));
+   s.execute(Files.readString(Path.of("sql/migraciones/migrar-comision.sql")));
+   s.execute(Files.readString(Path.of("sql/migraciones/migrar-comision.sql")));
   }
   assertEquals(g.getMonto(),giros.buscarPorId(g.getId()).orElseThrow().getMonto());
  }

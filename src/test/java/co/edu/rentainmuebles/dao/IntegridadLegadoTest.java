@@ -10,7 +10,7 @@ class IntegridadLegadoTest extends SoportePostgres {
  @Override protected String esquemaSql(){return "src/test/resources/schema-pre-profesor.sql";}
  @Test void migracionIntegridadReejecutable()throws Exception {
   Reserva r=reservaPagada();alFinalizar(r);Giro g=servicios.giros.generar(admin.getId(),r.getId(),null);
-  try(Connection c=ConexionBD.abrir();Statement t=c.createStatement()){t.execute(Files.readString(Path.of("corregir-integridad.sql")));t.execute(Files.readString(Path.of("corregir-integridad.sql")));}
+  try(Connection c=ConexionBD.abrir();Statement t=c.createStatement()){t.execute(Files.readString(Path.of("sql/migraciones/corregir-integridad.sql")));t.execute(Files.readString(Path.of("sql/migraciones/corregir-integridad.sql")));}
   assertEquals(g.getMonto(),giros.buscarPorId(g.getId()).orElseThrow().getMonto());
  }
 }

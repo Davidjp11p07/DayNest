@@ -1,5 +1,5 @@
 -- OPCIONAL. Datos ficticios academicos; ejecutar solamente por decision explicita.
--- Requiere schema.sql final y, para completar perfiles/inmuebles, data.sql.
+-- Requiere sql/instalacion/schema.sql final y, para completar perfiles/inmuebles, data.sql.
 -- No modifica cuentas existentes ni propiedades de usuarios ajenos al demo.
 BEGIN;
 INSERT INTO paises(nom_ps,codigo_iso2) VALUES('Pais ficticio DayNest','XX') ON CONFLICT DO NOTHING;

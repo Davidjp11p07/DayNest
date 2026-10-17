@@ -39,7 +39,7 @@ public final class MigrarProfesor {
   c.setAutoCommit(false);
   try {
    Map<String,List<String>> cols=columnas(c);Map<String,String> antes=huellas(c,cols,false);
-   try(Statement s=c.createStatement()){s.execute(Files.readString(Path.of("modelo-profesor.sql")));}
+   try(Statement s=c.createStatement()){s.execute(Files.readString(Path.of("sql/migraciones/modelo-profesor.sql")));}
    if(!antes.equals(huellas(c,cols,true)))throw new IllegalStateException("Cambiarian datos historicos; se revierte la migracion");
    c.commit();
   }catch(Exception e){c.rollback();throw e;}finally{c.setAutoCommit(true);}

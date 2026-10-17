@@ -24,7 +24,7 @@ class MigracionSvgTest extends SoportePostgres {
         Giro g=servicios.giros.generar(admin.getId(),r.getId(),"SIM-SVG");
         try(Connection c=ConexionBD.abrir()) {
             var antes=MigrarModeloSvg.huellas(c);
-            script(c,"revertir-svg.sql");
+            script(c,"sql/mantenimiento/revertir-svg.sql");
             assertEquals(antes,MigrarModeloSvg.huellas(c));
             MigrarModeloSvg.migrar(c);MigrarModeloSvg.migrar(c);
             assertEquals(antes,MigrarModeloSvg.huellas(c));
@@ -60,7 +60,7 @@ class MigracionSvgTest extends SoportePostgres {
     @Test void monedaInconsistenteRechazaMigracionSinCambiarFilas() throws Exception {
         reservaPagada();
         try(Connection c=ConexionBD.abrir()) {
-            script(c,"revertir-svg.sql");
+            script(c,"sql/mantenimiento/revertir-svg.sql");
             try(Statement s=c.createStatement()) {
                 c.setAutoCommit(false);s.execute("ALTER TABLE movimiento_pago DISABLE TRIGGER tg_validar_movimiento");
                 s.execute("UPDATE movimiento_pago SET moneda='EUR'");s.execute("ALTER TABLE movimiento_pago ENABLE TRIGGER tg_validar_movimiento");c.commit();c.setAutoCommit(true);
@@ -74,7 +74,7 @@ class MigracionSvgTest extends SoportePostgres {
     }
     @Test void correoNoCanonicoSeRechazaSinSobrescribir() throws Exception {
         try(Connection c=ConexionBD.abrir()) {
-            script(c,"revertir-svg.sql");
+            script(c,"sql/mantenimiento/revertir-svg.sql");
             try(Statement s=c.createStatement()){s.execute("UPDATE usuario SET correo=upper(correo) WHERE id_usuario="+cliente.getId());}
             var antes=MigrarModeloSvg.huellas(c);assertThrows(SQLException.class,()->MigrarModeloSvg.migrar(c));assertEquals(antes,MigrarModeloSvg.huellas(c));
             try(Statement s=c.createStatement()){s.execute("UPDATE usuario SET correo=lower(correo)");}MigrarModeloSvg.migrar(c);

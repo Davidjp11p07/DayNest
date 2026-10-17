@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface PagoService {
     Pago registrar(long clienteId, long reservaId, MetodoPago metodo, String referencia);
+    Pago registrarTransferencia(long clienteId,long reservaId,String referencia,CuentaBancaria cuentaOcasional);
     List<Pago> listarPropios(long clienteId);
     ResumenReserva resumen(long clienteId,long reservaId);
 }

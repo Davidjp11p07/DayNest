@@ -11,10 +11,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class IntegridadRegresionTest extends SoportePostgres {
  @Test void recargaNoRecreaAdministradorPersonalizado()throws Exception {
   try(Connection c=ConexionBD.abrir();Statement t=c.createStatement()) {
-   t.execute(Files.readString(Path.of("data.sql")));t.execute(Files.readString(Path.of("data.sql")));
+   t.execute(Files.readString(Path.of("sql/instalacion/data.sql")));t.execute(Files.readString(Path.of("sql/instalacion/data.sql")));
    try(ResultSet r=t.executeQuery("SELECT count(*) FROM administrador")){r.next();assertEquals(1,r.getInt(1));}
    try(ResultSet r=t.executeQuery("SELECT count(*) FROM usuario WHERE correo_normalizado='admin@renta.test'")){r.next();assertEquals(0,r.getInt(1));}
-   assertThrows(SQLException.class,()->t.execute(Files.readString(Path.of("admin-demo.sql"))));
+   assertThrows(SQLException.class,()->t.execute(Files.readString(Path.of("sql/demostracion/admin-demo.sql"))));
   }
  }
  @Test void giroPendienteInconsistenteRechazadoEnSQL()throws Exception {
@@ -30,11 +30,11 @@ class IntegridadRegresionTest extends SoportePostgres {
  }
  @Test void vencidaNoSeCobraPorDAO()throws Exception {
   Reserva r=reservaFutura();vencerReservaParaPrueba(r.getId());
-  assertThrows(DaoException.class,()->pagos.crear(new Pago(null,r,r.getTotal(),null,r.getFechaCreacion(),MetodoPago.TARJETA)));
-  assertThrows(NegocioException.class,()->servicios.pagos.registrar(cliente.getId(),r.getId(),MetodoPago.TARJETA,null));
+  assertThrows(DaoException.class,()->pagos.crear(new Pago(null,r,r.getTotal(),null,r.getFechaCreacion(),MetodoPago.TRANSFERENCIA)));
+  assertThrows(NegocioException.class,()->servicios.pagos.registrar(cliente.getId(),r.getId(),MetodoPago.TRANSFERENCIA,null));
  }
  @Test void vencidaPagadaNoSeConfirmaPorSQL()throws Exception {
-  Reserva r=reservaFutura();pagos.crear(new Pago(null,r,r.getTotal(),null,r.getFechaCreacion(),MetodoPago.TARJETA));vencerReservaParaPrueba(r.getId());
+  Reserva r=reservaFutura();pagos.crear(new Pago(null,r,r.getTotal(),null,r.getFechaCreacion(),MetodoPago.TRANSFERENCIA));vencerReservaParaPrueba(r.getId());
   assertThrows(DaoException.class,()->reservas.actualizarEstado(r.getId(),EstadoReserva.CONFIRMADA));
   new co.edu.rentainmuebles.service.CicloReservas().ejecutar();
   assertEquals(EstadoReserva.EXPIRADA,reservas.buscarPorId(r.getId()).orElseThrow().getEstado());
@@ -43,7 +43,7 @@ class IntegridadRegresionTest extends SoportePostgres {
  @Test void scriptsAnterioresNoReescribenModeloProfesor()throws Exception {
   try(Connection c=ConexionBD.abrir();Statement t=c.createStatement()) {
    c.setAutoCommit(false);
-   for(String archivo:java.util.List.of("corregir-integridad.sql","revertir-svg.sql","migrar-svg.sql")) {
+   for(String archivo:java.util.List.of("sql/migraciones/corregir-integridad.sql","sql/mantenimiento/revertir-svg.sql","sql/migraciones/migrar-svg.sql")) {
     String script=Files.readString(Path.of(archivo)).replaceAll("(?im)^\\s*(BEGIN|COMMIT);\\s*$", "");
     assertThrows(SQLException.class,()->t.execute(script));c.rollback();
    }

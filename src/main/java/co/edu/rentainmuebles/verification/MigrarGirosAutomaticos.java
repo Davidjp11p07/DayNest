@@ -30,7 +30,7 @@ public final class MigrarGirosAutomaticos {
    if(cols.size()!=17||!cols.containsKey("clientes"))throw new IllegalStateException("Termine primero la nomenclatura del profesor");
    try(Statement s=c.createStatement()){s.execute("LOCK TABLE "+String.join(",",cols.keySet())+" IN ACCESS EXCLUSIVE MODE");}
    Map<String,String> antes=huellas(c,cols);
-   try(Statement s=c.createStatement()){s.execute(Files.readString(Path.of("giros-automaticos.sql")));}
+   try(Statement s=c.createStatement()){s.execute(Files.readString(Path.of("sql/migraciones/giros-automaticos.sql")));}
    if(!antes.equals(huellas(c,cols)))throw new IllegalStateException("Cambiarian valores historicos; se revierte la extension");
    c.commit();
   }catch(Exception e){c.rollback();throw e;}finally{c.setAutoCommit(true);}

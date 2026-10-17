@@ -104,6 +104,13 @@ document.querySelectorAll('[data-city-search]').forEach(input=>{
  root.addEventListener('submit',()=>{if(!hidden.value){const a=catalog.filter(c=>norm(c.label)===norm(input.value)||norm(c.name)===norm(input.value));if(a.length===1)hidden.value=a[0].id;}});
 });
 
+// La cuenta ocasional solo forma parte del pago, nunca actualiza el perfil.
+document.querySelectorAll('[data-cuenta-pago]').forEach(form => {
+ const selector=form.querySelector('[name=cuentaPago]'), campos=form.querySelector('[data-cuenta-ocasional]'), registrada=form.querySelector('[data-cuenta-registrada]');
+ const actualizar=()=>{const ocasional=selector.value==='OCASIONAL';campos.hidden=!ocasional;campos.disabled=!ocasional;campos.querySelectorAll('input,select').forEach(c=>c.required=ocasional);if(registrada)registrada.hidden=ocasional;};
+ selector.addEventListener('change',actualizar);actualizar();
+});
+
 // Category anchors remain functional without JavaScript.
 document.querySelectorAll('[data-category-key]').forEach(link => link.addEventListener('click', () => {
  const form=document.querySelector('form[aria-label="Buscar alojamiento"]'); if(!form)return;

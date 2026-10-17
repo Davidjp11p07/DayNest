@@ -1,6 +1,6 @@
 <%@ page pageEncoding="UTF-8" %>
 <%@ include file="../layout/cabecera.jspf" %>
-<h1>Giros a propietarios</h1><c:if test="${finanzasDisponibles}">
+<h1>Giros a propietarios</h1><p><a class="button secondary" href="${fn:escapeXml(pageContext.request.contextPath)}/admin/ingresos">Ver comisiones acumuladas y detalle por inmueble</a></p><c:if test="${finanzasDisponibles}">
 <section class="panel"><h2>Comisión de DayNest</h2><p>Se fija al primer pago aprobado. Los cambios afectan a los pagos nuevos y conservan las comisiones históricas.</p>
 <form method="post" action="${fn:escapeXml(pageContext.request.contextPath)}/admin/comision" class="form-inline"><input type="hidden" name="csrf" value="${fn:escapeXml(sessionScope.csrf)}"><label for="porcentaje">Comisión (%)</label><input id="porcentaje" name="porcentaje" type="number" min="0" max="99.99" step="0.01" value="${fn:escapeXml(comisionActual)}" required><button type="submit">Guardar comisión</button></form></section>
 <h2>Liquidaciones automáticas</h2><p>Transferencias simuladas al finalizar cada estancia. Los casos pendientes se revisan cada minuto y al reiniciar el servidor.</p>

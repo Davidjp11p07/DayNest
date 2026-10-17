@@ -35,7 +35,7 @@ public final class MigrarFiltros {
             ejecutar(c,"SET LOCAL lock_timeout='10s'");
             ejecutar(c,"LOCK TABLE inmueble IN ACCESS EXCLUSIVE MODE");
             Map<String,String> antes = huellas(c);
-            ejecutar(c,script("migrar-filtros.sql"));
+            ejecutar(c,script("sql/migraciones/migrar-filtros.sql"));
             if (!antes.equals(huellas(c))) throw new IllegalStateException("La migración alteraría filas históricas; ROLLBACK");
             c.commit();
         } catch (Exception e) { c.rollback(); throw e; }
@@ -112,7 +112,7 @@ public final class MigrarFiltros {
             Process p=new ProcessBuilder(Path.of(System.getProperty("java.home"),"bin","java.exe").toString(),"-Dfile.encoding=UTF-8","-cp",cp,MigrarFiltros.class.getName(),"--verificar-clon").redirectErrorStream(true).redirectOutput(Path.of(".tools","dao-clon-filtros.log").toFile()).start();
             if(p.waitFor()!=0)throw new IllegalStateException("DAO incompatibles con clon; revise dao-clon-filtros.log");
             // JUnit compara además el DDL nuevo instalado desde cero con el migrado.
-            Properties evidencia=new Properties();evidencia.setProperty("migracion.sha256",hash(Path.of("migrar-filtros.sql")));evidencia.setProperty("schema.sha256",hash(Path.of("schema.sql")));evidencia.setProperty("respaldo",respaldo.toAbsolutePath().toString());
+            Properties evidencia=new Properties();evidencia.setProperty("migracion.sha256",hash(Path.of("sql/migraciones/migrar-filtros.sql")));evidencia.setProperty("schema.sha256",hash(Path.of("sql/instalacion/schema.sql")));evidencia.setProperty("respaldo",respaldo.toAbsolutePath().toString());
             evidencia.setProperty("resultado","restauracion,migracion,idempotencia,DAO,public-preservado");
             try(Writer w=Files.newBufferedWriter(EVIDENCIA)){evidencia.store(w,"Ensayo completo antes de aplicar");}
             Files.writeString(Path.of(".tools","huellas-filtros-clon.txt"),inicial.toString());
@@ -143,7 +143,7 @@ public final class MigrarFiltros {
     private static void aplicar() throws Exception {
         if(!Files.exists(EVIDENCIA))throw new IllegalStateException("Ejecute --ensayar primero");
         Properties evidencia=new Properties();try(Reader r=Files.newBufferedReader(EVIDENCIA)){evidencia.load(r);}
-        if(!hash(Path.of("migrar-filtros.sql")).equals(evidencia.getProperty("migracion.sha256")) || !hash(Path.of("schema.sql")).equals(evidencia.getProperty("schema.sha256")))throw new IllegalStateException("Scripts cambiaron después del ensayo; vuelva a ensayar");
+        if(!hash(Path.of("sql/migraciones/migrar-filtros.sql")).equals(evidencia.getProperty("migracion.sha256")) || !hash(Path.of("sql/instalacion/schema.sql")).equals(evidencia.getProperty("schema.sha256")))throw new IllegalStateException("Scripts cambiaron después del ensayo; vuelva a ensayar");
         // Evitar mezclar clientes Java viejos y nuevos durante el cambio de columnas.
         try(java.net.Socket s=new java.net.Socket()) {
             s.connect(new java.net.InetSocketAddress("127.0.0.1",8080),500);

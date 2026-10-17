@@ -15,7 +15,7 @@ public final class PrepararVerificacionHttp {
                 c.setAutoCommit(false);
                 try {
                     ejecutar(c,"CREATE SCHEMA \""+esquema+"\""); ejecutar(c,"SET search_path TO \""+esquema+"\",public");
-                    for(String archivo:new String[]{"schema.sql","data.sql","admin-demo.sql"})
+                    for(String archivo:new String[]{"sql/instalacion/schema.sql","sql/instalacion/data.sql","sql/demostracion/admin-demo.sql"})
                         ejecutar(c,Files.readString(Path.of(archivo)).replaceAll("(?im)^\\s*(BEGIN|COMMIT);\\s*$",""));
                     c.commit();
                 } catch(Exception e) { c.rollback(); throw e; }

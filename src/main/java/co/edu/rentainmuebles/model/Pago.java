@@ -8,6 +8,19 @@ import java.util.Objects;
 public final class Pago extends MovimientoFinanciero {
     private final MetodoPago metodo;
     private final EstadoPago estado;
+    private CuentaBancaria cuentaOcasional;
+    private String metodoRegistrado, bancoPago, numeroCuentaPago, tipoCuentaPago, usoCuenta;
+    private boolean datosBancariosLeidos;
+    public Pago conCuentaOcasional(CuentaBancaria cuenta){this.cuentaOcasional=Objects.requireNonNull(cuenta);return this;}
+    public CuentaBancaria getCuentaOcasional(){return cuentaOcasional;}
+    public Pago conDatosBancarios(String metodo,String banco,String numero,String tipo,String uso){
+        datosBancariosLeidos=true;metodoRegistrado=metodo;bancoPago=banco;numeroCuentaPago=numero;tipoCuentaPago=tipo;usoCuenta=uso;return this;
+    }
+    public String getMetodoRegistrado(){return metodoRegistrado==null?"No registrado (historico)":metodoRegistrado;}
+    public String getBancoPago(){return bancoPago;}
+    public String getNumeroCuentaPago(){return numeroCuentaPago==null?"": "****"+numeroCuentaPago.substring(Math.max(0,numeroCuentaPago.length()-4));}
+    public String getTipoCuentaPago(){return tipoCuentaPago;}
+    public String getUsoCuenta(){return usoCuenta;}
     private String clase="COBRO";
     private Long cobroOrigen;
     private String claveIdempotencia=java.util.UUID.randomUUID().toString();
@@ -29,6 +42,6 @@ public final class Pago extends MovimientoFinanciero {
     public String getClaveIdempotencia(){return claveIdempotencia;}
     public String getMoneda(){return getReserva().getMoneda();}
     @Override public TipoMovimiento getTipo() { return TipoMovimiento.PAGO_CLIENTE; }
-    public MetodoPago getMetodo() { return metodo; }
+    public MetodoPago getMetodo() { return datosBancariosLeidos ? ("TRANSFERENCIA".equals(metodoRegistrado)?MetodoPago.TRANSFERENCIA:null) : metodo; }
     public EstadoPago getEstado() { return estado; }
 }

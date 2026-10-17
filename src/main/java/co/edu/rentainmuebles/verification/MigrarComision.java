@@ -12,7 +12,7 @@ public final class MigrarComision {
    Path respaldo=MigrarModelo.respaldar();
    c.setAutoCommit(false);
    try(Statement s=c.createStatement()) {
-    s.execute(Files.readString(Path.of("migrar-comision.sql")).replaceAll("(?im)^\\s*(BEGIN|COMMIT);\\s*$",""));
+    s.execute(Files.readString(Path.of("sql/migraciones/migrar-comision.sql")).replaceAll("(?im)^\\s*(BEGIN|COMMIT);\\s*$",""));
     c.commit();
     System.out.println("Comision migrada; giros historicos conservados. Respaldo: "+respaldo);
    }catch(Exception ex){c.rollback();throw ex;}

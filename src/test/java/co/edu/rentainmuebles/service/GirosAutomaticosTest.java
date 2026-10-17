@@ -34,7 +34,7 @@ class GirosAutomaticosTest extends SoportePostgres {
  }
  @Test void cambiarTasaNoModificaOperacionPagada(){
   var r=reservaPagada();comisiones.cambiar(admin.getId(),new BigDecimal("45"));alFinalizar(r);ciclo();assertEquals(new BigDecimal("0.3000"),giros.buscarPorReserva(r.getId()).orElseThrow().getPorcentajeComision());
-  var nueva=nuevaReserva(HOY.plusDays(20),HOY.plusDays(22));servicios.pagos.registrar(cliente.getId(),nueva.getId(),MetodoPago.TARJETA,null);assertEquals(new BigDecimal("0.4500"),reservas.comisionHistorica(nueva.getId()).orElseThrow());
+  var nueva=nuevaReserva(HOY.plusDays(20),HOY.plusDays(22));servicios.pagos.registrar(cliente.getId(),nueva.getId(),MetodoPago.TRANSFERENCIA,null);assertEquals(new BigDecimal("0.4500"),reservas.comisionHistorica(nueva.getId()).orElseThrow());
  }
  @Test void cambiarCuentaNoModificaGiroHistorico()throws Exception {
   var r=reservaPagada();alFinalizar(r);ciclo();long banco=numero("SELECT min(id_b) FROM banco");new DatosCuentaService().guardar(propietario.getId(),Rol.PROPIETARIO,new CuentaBancaria(banco,"0000777788","AHORROS"),false);
@@ -63,7 +63,7 @@ class GirosAutomaticosTest extends SoportePostgres {
   assertThrows(NegocioException.class,()->comisiones.cambiar(cliente.getId(),BigDecimal.TEN));assertThrows(NegocioException.class,()->comisiones.reintentar(cliente.getId(),999));assertThrows(NegocioException.class,()->comisiones.cambiar(admin.getId(),new BigDecimal("100")));assertThrows(NegocioException.class,()->comisiones.cambiar(admin.getId(),new BigDecimal("0.001")));
   comisiones.cambiar(admin.getId(),new BigDecimal("12.34"));assertEquals(new BigDecimal("0.1234"),comisiones.porcentaje(admin.getId()));assertThrows(SQLException.class,()->sql("UPDATE configuracion_comision SET porcentaje=0"));
  }
- @Test void sinCuentaClienteNoSeApruebaPago()throws Exception{sql("DELETE FROM vincula");var r=reservaFutura();assertThrows(NegocioException.class,()->servicios.pagos.registrar(cliente.getId(),r.getId(),MetodoPago.TARJETA,null));assertTrue(pagos.listar().isEmpty());}
+ @Test void sinCuentaClienteNoSeApruebaPago()throws Exception{sql("DELETE FROM vincula");var r=reservaFutura();assertThrows(NegocioException.class,()->servicios.pagos.registrar(cliente.getId(),r.getId(),MetodoPago.TRANSFERENCIA,null));assertTrue(pagos.listar().isEmpty());}
  @Test void giroFallidoHistoricoNoBloqueaUnaLiquidacionNueva()throws Exception {
   var r=reservaPagada();
   var previo=giros.crear(new Giro(null,r,propietario,new BigDecimal("315000"),"SIM-AUTO-"+r.getId(),r.getFechaCreacion(),EstadoGiro.FALLIDO,null,"liquidacion-reserva-"+r.getId(),new BigDecimal("0.3000"),new BigDecimal("135000")));

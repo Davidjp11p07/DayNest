@@ -32,9 +32,9 @@ public abstract class SoportePostgres {
     protected Inmueble inmueble;
     private String esquema,anterior,hash;
 
-    protected boolean nomenclaturaNueva(){return esquemaSql().equals("schema.sql")||esquemaSql().equals("src/test/resources/schema-antes-giros.sql");}
+    protected boolean nomenclaturaNueva(){return esquemaSql().equals("sql/instalacion/schema.sql")||esquemaSql().equals("src/test/resources/schema-antes-giros.sql");}
     protected boolean sembrarCuentas(){return true;}
-    protected String esquemaSql(){return "schema.sql";}
+    protected String esquemaSql(){return "sql/instalacion/schema.sql";}
     @BeforeAll final void crearEsquema() throws Exception {
         anterior = System.getProperty("renta.db.schema");
         if(anterior != null) throw new IllegalStateException("No establezca renta.db.schema al ejecutar JUnit.");
@@ -56,14 +56,14 @@ public abstract class SoportePostgres {
             if(!esquema.equals(c.getSchema())) throw new IllegalStateException("Se rechazó el reinicio fuera del esquema de pruebas.");
             ejecutar(c,"TRUNCATE giro,movimiento_pago,bloqueo,"+(nomenclaturaNueva()?"renta":"reserva")+(nomenclaturaNueva()?",ocupacion,inmuebles,administrador,clientes,propietarios,usuario,paises RESTART IDENTITY CASCADE":",ocupacion,inmueble,administrador,cliente,propietario,usuario,pais RESTART IDENTITY CASCADE"));
         }
-        try(Connection c=ConexionBD.abrir()){ejecutar(c,Files.readString(Path.of(nomenclaturaNueva()?"geografia.sql":"src/test/resources/geografia-antes-nomenclatura.sql")));}
+        try(Connection c=ConexionBD.abrir()){ejecutar(c,Files.readString(Path.of(nomenclaturaNueva()?"sql/instalacion/geografia.sql":"src/test/resources/geografia-antes-nomenclatura.sql")));}
         admin=usuarios.crear(new Usuario(null,"Administradora prueba","admin@junit.test",hash,null,true,true,false,false));
         propietario=usuarios.crear(new Usuario(null,"Propietario prueba","propietario@junit.test",hash,null,true,false,false,true)).getPropietario();
         cliente=usuarios.crear(new Usuario(null,"Cliente prueba","cliente@junit.test",hash,null,true,false,true,false)).getCliente();
         otroCliente=usuarios.crear(new Usuario(null,"Otro cliente","otro@junit.test",hash,null,true,false,true,false)).getCliente();
         inmueble=inmuebles.crear(new Inmueble(null,propietario,"Casa de prueba","Bogotá","Calle 10","Descripción de prueba",4,new BigDecimal("150000"),EstadoInmueble.PUBLICADO));
         servicios=conReloj(RELOJ);
-        if(esquemaSql().equals("schema.sql"))try(Connection c=ConexionBD.abrir();Statement t=c.createStatement()){
+        if(esquemaSql().equals("sql/instalacion/schema.sql"))try(Connection c=ConexionBD.abrir();Statement t=c.createStatement()){
             t.execute("INSERT INTO configuracion_comision(porcentaje) VALUES(0)");
             if(sembrarCuentas()){
                 t.execute("INSERT INTO banco(nom_b,id_ps) SELECT 'Banco fixture',min(id_ps) FROM paises");
@@ -89,7 +89,7 @@ public abstract class SoportePostgres {
     protected Reserva reservaFutura() { return nuevaReserva(HOY.plusDays(10),HOY.plusDays(13)); }
     protected Reserva reservaPagada() {
         Reserva r=reservaFutura();
-        return servicios.pagos.registrar(cliente.getId(),r.getId(),MetodoPago.TARJETA,"PAGO-JUNIT").getReserva();
+        return servicios.pagos.registrar(cliente.getId(),r.getId(),MetodoPago.TRANSFERENCIA,"PAGO-JUNIT").getReserva();
     }
     protected Servicios alFinalizar(Reserva r) {
         // Fixture histórico SOLO en esquema UUID de prueba, con igual duración y cobro.

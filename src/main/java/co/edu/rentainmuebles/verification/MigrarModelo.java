@@ -25,8 +25,8 @@ public final class MigrarModelo {
             c.setAutoCommit(false);
             try {
                 ejecutar(c,"LOCK TABLE usuarios,inmuebles,reservas,pagos,giros IN ACCESS EXCLUSIVE MODE");
-                ejecutar(c,Files.readString(Path.of("schema.sql")).replaceAll("(?im)^\\s*(BEGIN|COMMIT);\\s*$",""));
-                ejecutar(c,Files.readString(Path.of("migrar-modelo.sql")));
+                ejecutar(c,Files.readString(Path.of("sql/instalacion/schema.sql")).replaceAll("(?im)^\\s*(BEGIN|COMMIT);\\s*$",""));
+                ejecutar(c,Files.readString(Path.of("sql/migraciones/migrar-modelo.sql")));
                 c.commit();
                 System.out.println("Modelo migrado conservando datos y credenciales. Respaldo: "+respaldo);
             } catch(Exception e) { c.rollback(); throw e; }

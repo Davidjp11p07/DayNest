@@ -10,7 +10,7 @@ import java.util.regex.*;
 public final class GenerarHashesDatos {
     private GenerarHashesDatos() { }
     public static void main(String[] args) throws Exception {
-        for(String nombre : new String[]{"data.sql","admin-demo.sql"}) {
+        for(String nombre : new String[]{"sql/instalacion/data.sql","sql/demostracion/admin-demo.sql"}) {
         Path archivo = Path.of(nombre);
         String sql = Files.readString(archivo, StandardCharsets.UTF_8);
         Pattern patron = Pattern.compile("'((?:admin|propietario[1-3]|cliente[1-4])@renta\\.test)','pbkdf2-sha256\\$[^']+'");
@@ -23,7 +23,7 @@ public final class GenerarHashesDatos {
             cantidad++;
         }
         matcher.appendTail(salida);
-        if (cantidad != (nombre.equals("data.sql")?7:1)) { throw new IllegalStateException("Cantidad de cuentas demo inesperada."); }
+        if (cantidad != (nombre.equals("sql/instalacion/data.sql")?7:1)) { throw new IllegalStateException("Cantidad de cuentas demo inesperada."); }
         Files.writeString(archivo, salida, StandardCharsets.UTF_8);
         System.out.println("Hashes generados con PasswordUtil: " + cantidad);
         }

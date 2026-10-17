@@ -28,7 +28,7 @@ public final class MigrarNomenclatura {
   try {
    try(Statement s=c.createStatement()){s.execute("LOCK TABLE usuario,cliente,propietario,administrador,pais,division_administrativa,ciudad,inmueble,ocupacion,renta,bloqueo,movimiento_pago,giro,banco,asocia,vincula,relaciona IN ACCESS EXCLUSIVE MODE");}
    Map<String,String> antes=huellas(c,false);
-   try(Statement s=c.createStatement()){s.execute(Files.readString(Path.of("nomenclatura-profesor.sql")));}
+   try(Statement s=c.createStatement()){s.execute(Files.readString(Path.of("sql/migraciones/nomenclatura-profesor.sql")));}
    if(!antes.equals(huellas(c,true)))throw new IllegalStateException("Cambiarian filas historicas; migracion revertida");
    c.commit();
   }catch(Exception e){c.rollback();throw e;}finally{c.setAutoCommit(true);}

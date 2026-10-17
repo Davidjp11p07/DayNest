@@ -12,7 +12,7 @@ public final class CorregirIntegridad {
    Path respaldo=MigrarModelo.respaldar();
    c.setAutoCommit(false);
    try(Statement s=c.createStatement()) {
-    s.execute(Files.readString(Path.of("corregir-integridad.sql")).replaceAll("(?im)^\\s*(BEGIN|COMMIT);\\s*$",""));
+    s.execute(Files.readString(Path.of("sql/migraciones/corregir-integridad.sql")).replaceAll("(?im)^\\s*(BEGIN|COMMIT);\\s*$",""));
     c.commit();
     System.out.println("Integridad corregida; datos historicos conservados. Respaldo: "+respaldo);
    }catch(Exception ex){c.rollback();throw ex;}

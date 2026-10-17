@@ -15,8 +15,8 @@ public final class ReiniciarDatos {
         try (Connection c = ConexionBD.abrir()) {
             c.setAutoCommit(false);
             try {
-                ejecutar(c,"reset.sql"); ejecutar(c,"data.sql"); ejecutar(c,"admin-demo.sql"); c.commit();
-                System.out.println("Demostración reiniciada: reset.sql y data.sql confirmados.");
+                ejecutar(c,"sql/mantenimiento/reset.sql"); ejecutar(c,"sql/instalacion/data.sql"); ejecutar(c,"sql/demostracion/admin-demo.sql"); c.commit();
+                System.out.println("Demostración reiniciada: sql/mantenimiento/reset.sql y sql/instalacion/data.sql confirmados.");
             } catch (Exception e) { c.rollback(); throw e; }
         }
     }

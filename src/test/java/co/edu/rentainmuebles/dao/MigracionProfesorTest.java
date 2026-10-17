@@ -29,7 +29,7 @@ class MigracionProfesorTest extends SoportePostgres {
     s.execute("INSERT INTO reserva(id_ocupacion,id_cliente,id_propietario_pactado,cantidad_huespedes,precio_noche_pactado,moneda,expira_en) VALUES(1,1,1,2,150000,'COP',clock_timestamp()+interval '30 minutes')");
     c.commit();c.setAutoCommit(true);
     MigrarProfesor.migrar(c);MigrarProfesor.migrar(c);
-    c.setAutoCommit(false);s.execute(Files.readString(Path.of("nomenclatura-profesor.sql")));s.execute(Files.readString(Path.of("giros-automaticos.sql")));c.commit();c.setAutoCommit(true);
+    c.setAutoCommit(false);s.execute(Files.readString(Path.of("sql/migraciones/nomenclatura-profesor.sql")));s.execute(Files.readString(Path.of("sql/migraciones/giros-automaticos.sql")));c.commit();c.setAutoCommit(true);
     assertEquals(esperado,estructura(c));
     try(ResultSet r=s.executeQuery("SELECT id_cliente,id_inmueble,fecha_salida-fecha_entrada FROM renta_operativa WHERE id_ocupacion=1")){assertTrue(r.next());assertEquals(1,r.getLong(1));assertEquals(1,r.getLong(2));assertEquals(2,r.getInt(3));}
     try(ResultSet r=s.executeQuery("SELECT nombre_completo FROM cliente WHERE id_cliente=1")){r.next();assertEquals("Persona historica",r.getString(1));}
