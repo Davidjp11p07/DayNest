@@ -4,7 +4,7 @@ Actualizados contra Java y `schema.sql` el 10 de octubre de 2026. Se incluyen **
 
 | Fuente e imagen | Contenido |
 | --- | --- |
-| [01_entidad_relacion.puml](01_entidad_relacion.puml) · [SVG](01_entidad_relacion.svg) | 13 tablas, 73 columnas, claves y cardinalidades; tipo/entorno opcionales |
+| [01_entidad_relacion.puml](01_entidad_relacion.puml) · [SVG](01_entidad_relacion.svg) | 19 tablas, 120 columnas, claves y cardinalidades; tipo/entorno opcionales |
 | [02_casos_uso.puml](02_casos_uso.puml) · [SVG](02_casos_uso.svg) | Visitante, cliente, propietario y administrador; CU01–CU20, include y extend |
 | [03_clases_modelo_usuarios.puml](03_clases_modelo_usuarios.puml) · [SVG](03_clases_modelo_usuarios.svg) | Identidad, perfiles por composición, interfaces y ubicación |
 | [04_clases_modelo_reservas_finanzas.puml](04_clases_modelo_reservas_finanzas.puml) · [SVG](04_clases_modelo_reservas_finanzas.svg) | Inmueble, contrato y calendario; conserva el nombre anterior del archivo |
@@ -27,7 +27,7 @@ El ER es el modelo lógico con extensiones autorizadas. El [SVG conceptual origi
 
 ## Comprobar y regenerar sin internet
 
-Se usó **PlantUML 1.2025.10** y Java 17. Quince diagramas usan **Smetana**; casos de uso utiliza el **Graphviz local integrado en PlantUML para Windows**, para evitar un recorte detectado con Smetana. No se instaló Graphviz por separado ni se usó servidor remoto. JAR local: `.tools/plantuml/plantuml-1.2025.10.jar`. SHA-256:
+Se usó **PlantUML 1.2025.10** y Java 17. Dieciseis diagramas usan **Smetana**; casos de uso utiliza el **Graphviz local integrado en PlantUML para Windows**, para evitar un recorte detectado con Smetana. No se instaló Graphviz por separado ni se usó servidor remoto. JAR local: `.tools/plantuml/plantuml-1.2025.10.jar`. SHA-256:
 
 ```text
 4A01EA09B317180FB8E7EEF712DFDCA725409D2EE1919E4B5ADFE9D8362B6FE5
@@ -70,3 +70,5 @@ python docs/Generar-Informe.py --pdf
 El generador usa Playwright existente en `.tools/daynest-python` o en el entorno Python. Otra ruta de Chrome se indica mediante `--chrome 'C:/ruta/chrome.exe'`. Si no tiene Playwright, genere HTML y use Imprimir → Guardar como PDF en Chrome, con fondos y tamaños CSS de página.
 
 El HTML incorpora SVG y fuentes; el generador PDF bloquea HTTP/HTTPS. Texto A4 y diagramas A3 con orientación según su forma permiten conservar lectura. Revise la impresión antes de reducir todo a A4. HTML/SVG se pueden ampliar sin perder nitidez. La plantilla no implica aprobación del profesor.
+
+El modelo vigente tiene diez tablas del profesor y nueve de soporte. Las cuentas bancarias se documentan en `17_clases_cuentas.puml`; `modelo_er_daynest.svg` muestra las seis entidades conceptuales.

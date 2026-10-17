@@ -123,10 +123,19 @@ note bottom of FiltrosInmueble
 end note
 note bottom of GiroServiceImpl
   PoliticaComision se conserva por compatibilidad.
-  generar() aplica comisión configurable; pago y giro son simulaciones locales.
+  generar() usa la tasa historica fijada al primer cobro aprobado.
+  La politica de propiedades solo respalda esquemas anteriores.
 end note
 class CiudadDaoJdbc
 InmuebleServiceImpl ..> CiudadDaoJdbc : resolver ubicación
+class ComisionService {
+ +disponible() : boolean
+ +porcentaje(...) : BigDecimal
+ +cambiar(...) : void
+ +liquidaciones(...) : List
+ +reintentar(...) : void
+}
+ComisionService ..> Giro : supervision e historial
 legend bottom
   Firmas abreviadas (...); nombres y atributos comprobados contra Java.
   Pago representa movimiento_pago. Datos geográficos: registros Java inmutables.

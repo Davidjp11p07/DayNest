@@ -20,14 +20,17 @@ else (no)
 endif
 |Cliente|
 if (¿Decide pagar?) then (sí)
-  :Abrir pago y revisar saldo;
+  :Vincular banco, numero y tipo en su perfil cliente;
+:Abrir pago y revisar saldo;
   :Elegir método e indicar referencia opcional;
   :Enviar pago;
   |DayNest|
   :Bloquear reserva y validar pertenencia, estado y vencimiento;
   :Calcular saldo = total - neto aprobado;
   if (¿Pago permitido?) then (sí)
-    :Registrar COBRO y aprobarlo en simulación;
+    :Registrar COBRO y aprobarlo en simulacion;
+    :Fijar tasa historica e instantanea de cuenta;
+    :DayNest administra el importe hasta la salida;
     :Confirmar reserva; confirmar transacción;
     :Mostrar reserva CONFIRMADA y saldo;
   else (no)
@@ -53,6 +56,15 @@ else (no)
   |DayNest|
   :Al terminar la estadía, ciclo automático
 marca FINALIZADA;
+  :Comprobar pago completo, ausencia de devoluciones,
+comision historica y cuenta del propietario pactado;
+  if (¿Condiciones de giro cumplidas?) then (si)
+    :Ejecutar giro simulado neto con autor SISTEMA;
+    :Guardar destino historico y liquidacion EJECUTADA;
+  else (no)
+    :Registrar pendiente o fallo con motivo;
+    :Reintentar en el ciclo siguiente sin duplicar giros;
+  endif
 endif
 stop
 @enduml

@@ -15,6 +15,7 @@ s -> tx : ejecutar(operacion)
 s -> usuarios : buscarPorId(clienteId)
 s -> reservas : buscarPorId(reservaId)
 s -> pagos : totalPagado(reservaId)
+s -> pagos : tieneCuentaCliente(reservaId)
 pagos -> bd : SUM(cobros aprobados - devoluciones aprobadas)
 bd --> pagos : neto pagado
 pagos --> s : BigDecimal
@@ -30,6 +31,7 @@ reservas --> s : Reserva
 note over s : Comprueba pertenencia, PENDIENTE_PAGO,\nno vencida y entrada futura.
 s -> reservas : existeCruce(inmuebleId, periodo, reservaId)
 s -> pagos : totalPagado(reservaId)
+s -> pagos : tieneCuentaCliente(reservaId)
 alt Regla incumplida o importe inválido
   s --> tx : excepción; rollback
   s --> web : NegocioException
@@ -37,6 +39,7 @@ alt Regla incumplida o importe inválido
 else Pago permitido
   s -> pagos : crear(new Pago(..., total - pagado, ...))
   pagos -> bd : INSERT COBRO con clave idempotente\nUPDATE PENDIENTE a APROBADO (simulación)
+  bd -> bd : Fijar tasa vigente y snapshot de la cuenta cliente
   bd --> pagos : movimiento aprobado
   pagos --> s : Pago
   s -> reservas : actualizarEstado(reservaId, CONFIRMADA)

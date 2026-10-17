@@ -60,6 +60,7 @@ class InmuebleDaoJdbc {
   +buscar(...) : List<Inmueble>
 }
 interface ReservaDao {
+  +comisionHistorica(...) : Optional
   +buscarPorIdParaActualizar(...)
   +buscarPorId(...)
   +listar(...)
@@ -82,6 +83,7 @@ class ReservaDaoJdbc {
   +existeCruce(...) : boolean
 }
 interface PagoDao {
+  +tieneCuentaCliente(...) : boolean
   +buscarPorId(...)
   +listar(...)
   +crear(...)

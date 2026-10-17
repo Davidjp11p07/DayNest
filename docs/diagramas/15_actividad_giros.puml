@@ -1,35 +1,38 @@
 @startuml
 !include estilo.iuml
-title Administrador — gestión de giros simulados
-|Administrador|
+title Supervision y liquidacion automatica simulada
+|Ciclo automatico|
 start
-:Abrir reservas y revisar las que permiten giro;
-:Seleccionar reserva e indicar referencia opcional;
-:Solicitar generación de giro;
-|DayNest|
-:Validar sesión/rol y CSRF;
-:Bloquear reserva y comprobar administrador activo;
-:Consultar giro vigente y neto de pagos;
-if (¿Salida cumplida, estado confirmado/finalizado,
-pago completo y sin giro vigente?) then (sí)
-  if (¿Estado CONFIRMADA?) then (sí)
-    :Actualizar a FINALIZADA;
-  endif
-  :Tomar propietario pactado histórico;
-  :Registrar giro por neto cobrado menos comisión histórica;
-  :Cambiar PENDIENTE a PROCESANDO y EJECUTADO
-con administrador y fecha;
-  :Confirmar transacción;
-  |Administrador|
-  :Consultar giro y mensaje de éxito;
+:Ejecutar al arrancar y cada minuto;
+:Finalizar estancias cuya fecha de salida se cumplio;
+:Buscar rentas finalizadas sin giro ejecutado;
+:Bloquear cada renta en una transaccion;
+if (Giro ya ejecutado?) then (si)
+ :Conservar operacion; no duplicar;
+ stop
+endif
+if (Pago completo, sin devoluciones ni pendientes,
+tasa historica y cuenta del beneficiario validas?) then (si)
+ :Calcular comision y neto;
+ :Crear o recuperar giro vigente;
+ :PROCESANDO -> EJECUTADO con autor SISTEMA;
+ :Capturar banco, numero y tipo al ejecutar;
+ :Registrar resultado y confirmar transaccion;
 else (no)
-  :Revertir y mostrar error;
+ :Registrar motivo PENDIENTE o FALLIDA;
+ :No marcar como ejecutado;
+endif
+|Administrador|
+:Consultar pagos, tasas, netos y liquidaciones;
+if (Necesita resolver incidencia?) then (si)
+ :Corregir los datos necesarios con el titular;
+ :Solicitar revision o esperar el siguiente ciclo;
+ :El sistema repite validaciones sin duplicados;
 endif
 stop
 note right
-  Es una simulación académica local.
-  No hay transferencia bancaria real.
-  Intentos FALLIDO son soportados por la BD;
-  no constituyen una pasarela implementada.
+ Operaciones academicas simuladas, sin bancos reales.
+ La comision se edita para pagos nuevos.
+ El historial conserva su tasa, cuenta y autorizacion.
 end note
 @enduml

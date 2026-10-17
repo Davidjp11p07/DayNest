@@ -1,7 +1,159 @@
 @startuml
 !include estilo.iuml
-title DayNest — modelo lógico del SVG (10 entidades conceptuales, 13 tablas)
-' @sql-table usuario
+title Modelo logico: diez tablas del profesor y soporte de la aplicacion
+hide methods
+package "Modelo del profesor" {
+entity "PROPIETARIOS\n(propietarios)" as propietarios {
+  * id_p : BIGINT <<FK/PK>>
+  * id_usuario : BIGINT <<FK/UQ>>
+  * nom_p : VARCHAR(160)
+  * emai_p : VARCHAR(254)
+  tel_p : VARCHAR(30)
+}
+entity "INMUEBLES\n(inmuebles)" as inmuebles {
+  * id_i : BIGINT <<PK>>
+  * id_cd : BIGINT <<FK>>
+  * titulo : VARCHAR(150)
+  descripcion : TEXT
+  * dir_i : VARCHAR(300)
+  tipo : VARCHAR(20)
+  * capacd : SMALLINT
+  * moneda : VARCHAR(3)
+  * estado : VARCHAR(12)
+  * creado_en : TIMESTAMPTZ
+  es_rural : BOOLEAN
+  cerca_mar : BOOLEAN
+  area : NUMERIC(12,2)
+  n_hab : SMALLINT
+}
+entity "CIUDADES\n(ciudades)" as ciudades {
+  * id_cd : BIGINT <<PK>>
+  * id_division : BIGINT <<FK/UQ>>
+  * nom_cd : VARCHAR(160)
+  * codigo_oficial : VARCHAR(40) <<UQ>>
+  * id_ps : BIGINT <<FK>>
+}
+entity "PAISES\n(paises)" as paises {
+  * id_ps : BIGINT <<PK>>
+  * nom_ps : VARCHAR(120)
+  * codigo_iso2 : CHARACTER(2) <<UQ>>
+}
+entity "BANCO\n(banco)" as banco {
+  * id_b : BIGINT <<PK>>
+  * nom_b : VARCHAR(160) <<UQ>>
+  * id_ps : BIGINT <<FK/UQ>>
+}
+entity "CLIENTES\n(clientes)" as clientes {
+  * id_cl : BIGINT <<FK/PK>>
+  * id_usuario : BIGINT <<FK/UQ>>
+  * nom_cl : VARCHAR(160)
+  * emai_cl : VARCHAR(254)
+  tel_cl : VARCHAR(30)
+  id_cd : BIGINT <<FK>>
+}
+entity "ASOCIA\n(asocia)" as asocia {
+  * id_i : BIGINT <<FK/PK>>
+  * id_p : BIGINT <<FK>>
+  * prec_nch : NUMERIC(16,2)
+}
+entity "RELACIONA\n(relaciona)" as relaciona {
+  * id_p : BIGINT <<FK/PK>>
+  * id_b : BIGINT <<FK>>
+  * num_cta : VARCHAR(34)
+  * tipo_cta : VARCHAR(12)
+  * actualizada_en : TIMESTAMPTZ
+}
+entity "VINCULA\n(vincula)" as vincula {
+  * id_cl : BIGINT <<FK/PK>>
+  * id_b : BIGINT <<FK>>
+  * num_cta : VARCHAR(34)
+  * tipo_cta : VARCHAR(12)
+  * actualizada_en : TIMESTAMPTZ
+}
+entity "RENTA\n(renta)" as renta {
+  * id_ocupacion : BIGINT <<FK/UQ>>
+  * id_cl : BIGINT <<FK/PK>>
+  * id_p : BIGINT <<FK>>
+  * cantidad_huespedes : SMALLINT
+  * precio_noche_pactado : NUMERIC(16,2)
+  * moneda : VARCHAR(3)
+  * estado : VARCHAR(16)
+  * expira_en : TIMESTAMPTZ
+  * creada_en : TIMESTAMPTZ
+  * id_i : BIGINT <<FK/PK>>
+  * fch_e : DATE <<PK>>
+  * fch_s : DATE
+  * num_intento : BIGINT <<PK>>
+  porcentaje_comision : NUMERIC(5,4)
+}
+}
+package "Soporte tecnico" {
+entity "ADMINISTRADOR\n(administrador)" as administrador {
+  * id_usuario : BIGINT <<FK/PK>>
+}
+entity "BLOQUEO\n(bloqueo)" as bloqueo {
+  * id_ocupacion : BIGINT <<FK/PK>>
+  * id_propietario_solicitante : BIGINT <<FK>>
+  * motivo : VARCHAR(250)
+}
+entity "CONFIGURACION_COMISION\n(configuracion_comision)" as configuracion_comision {
+  * id_configuracion : BIGINT <<PK>>
+  * porcentaje : NUMERIC(5,4)
+  id_usuario : BIGINT <<FK>>
+  * creada_en : TIMESTAMPTZ
+}
+entity "DIVISION_ADMINISTRATIVA\n(division_administrativa)" as division_administrativa {
+  * id_division : BIGINT <<PK>>
+  * id_pais : BIGINT <<FK/UQ>>
+  * nombre : VARCHAR(160)
+  * codigo_oficial : VARCHAR(40) <<UQ>>
+}
+entity "GIRO\n(giro)" as giro {
+  * id_giro : BIGINT <<PK>>
+  * id_reserva : BIGINT <<FK>>
+  id_admin_autorizador : BIGINT <<FK>>
+  * monto : NUMERIC(16,2)
+  * estado : VARCHAR(12)
+  * clave_idempotencia : VARCHAR(120) <<UQ>>
+  referencia_externa : VARCHAR(140) <<UQ>>
+  * creado_en : TIMESTAMPTZ
+  ejecutado_en : TIMESTAMPTZ
+  * porcentaje_comision : NUMERIC(5,4)
+  * monto_comision : NUMERIC(16,2)
+  cuenta_bancaria_pactada : JSONB
+  * origen_autorizacion : VARCHAR(16)
+}
+entity "LIQUIDACION_GIRO\n(liquidacion_giro)" as liquidacion_giro {
+  * id_ocupacion : BIGINT <<FK/PK>>
+  * estado : VARCHAR(12)
+  * motivo : VARCHAR(300)
+  * intentos : BIGINT
+  * revisada_en : TIMESTAMPTZ
+  id_giro : BIGINT <<FK>>
+  * historial : JSONB
+}
+entity "MOVIMIENTO_PAGO\n(movimiento_pago)" as movimiento_pago {
+  * id_movimiento : BIGINT <<PK/UQ>>
+  * id_reserva : BIGINT <<FK/UQ>>
+  * clase : VARCHAR(12)
+  * monto : NUMERIC(16,2)
+  * estado : VARCHAR(12)
+  id_cobro_origen : BIGINT <<FK>>
+  * clave_idempotencia : VARCHAR(120) <<UQ>>
+  referencia_externa : VARCHAR(140) <<UQ>>
+  * creado_en : TIMESTAMPTZ
+  resuelto_en : TIMESTAMPTZ
+  cuenta_bancaria_pactada : JSONB
+}
+entity "OCUPACION\n(ocupacion)" as ocupacion {
+  * id_ocupacion : BIGINT <<PK>>
+  * id_inmueble : BIGINT <<FK>>
+  * fecha_inicio : DATE
+  * fecha_fin : DATE
+  * tipo : VARCHAR(8)
+  * activa : BOOLEAN
+  * creada_en : TIMESTAMPTZ
+}
 entity "USUARIO\n(usuario)" as usuario {
   * id_usuario : BIGINT <<PK>>
   * nombre_completo : VARCHAR(160)
@@ -11,179 +163,44 @@ entity "USUARIO\n(usuario)" as usuario {
   * activo : BOOLEAN
   * creado_en : TIMESTAMPTZ
 }
-' @sql-table cliente
-entity "CLIENTE\n(cliente)" as cliente {
-  * id_usuario : BIGINT <<PK, FK usuario.id_usuario>>
 }
-' @sql-table propietario
-entity "PROPIETARIO\n(propietario)" as propietario {
-  * id_usuario : BIGINT <<PK, FK usuario.id_usuario>>
-}
-' @sql-table administrador
-entity "ADMINISTRADOR\n(administrador)" as administrador {
-  * id_usuario : BIGINT <<PK, FK usuario.id_usuario>>
-}
-' @sql-table pais
-entity "PAIS\n(pais)" as pais {
-  * id_pais : BIGINT <<PK>>
-  * nombre : VARCHAR(120)
-  * codigo_iso2 : CHAR(2) <<UQ>>
-}
-' @sql-table division_administrativa
-entity "DIVISION_ADMINISTRATIVA\n(division_administrativa)" as division_administrativa {
-  * id_division : BIGINT <<PK>>
-  * id_pais : BIGINT <<FK pais.id_pais>>
-  * nombre : VARCHAR(160)
-  * codigo_oficial : VARCHAR(40)
-}
-' @sql-table ciudad
-entity "CIUDAD\n(ciudad)" as ciudad {
-  * id_ciudad : BIGINT <<PK>>
-  * id_division : BIGINT <<FK division_administrativa.id_division>>
-  * nombre : VARCHAR(160)
-  * codigo_oficial : VARCHAR(40)
-}
-' @sql-table inmueble
-entity "INMUEBLE\n(inmueble)" as inmueble {
-  * id_inmueble : BIGINT <<PK>>
-  * id_propietario : BIGINT <<FK propietario.id_usuario>>
-  * id_ciudad : BIGINT <<FK ciudad.id_ciudad>>
-  * titulo : VARCHAR(150)
-  descripcion : TEXT
-  * direccion_detallada : VARCHAR(300)
-  tipo : VARCHAR(20)
-  es_rural : BOOLEAN
-  cerca_mar : BOOLEAN
-  * capacidad : SMALLINT
-  * tarifa_noche : NUMERIC(16,2)
-  * moneda : VARCHAR(3)
-  * estado : VARCHAR(12)
-  * creado_en : TIMESTAMPTZ
-}
-' @sql-table ocupacion
-entity "OCUPACION\n(ocupacion)" as ocupacion {
-  * id_ocupacion : BIGINT <<PK>>
-  * id_inmueble : BIGINT <<FK inmueble.id_inmueble>>
-  * fecha_inicio : DATE
-  * fecha_fin : DATE
-  * tipo : VARCHAR(8)
-  * activa : BOOLEAN
-  * creada_en : TIMESTAMPTZ
-}
-' @sql-table reserva
-entity "RESERVA\n(reserva)" as reserva {
-  * id_ocupacion : BIGINT <<PK, FK ocupacion.id_ocupacion>>
-  * id_cliente : BIGINT <<FK cliente.id_usuario>>
-  * id_propietario_pactado : BIGINT <<FK propietario.id_usuario>>
-  * cantidad_huespedes : SMALLINT
-  * precio_noche_pactado : NUMERIC(16,2)
-  * moneda : VARCHAR(3)
-  * estado : VARCHAR(16)
-  * expira_en : TIMESTAMPTZ
-  * creada_en : TIMESTAMPTZ
-}
-' @sql-table bloqueo
-entity "BLOQUEO\n(bloqueo)" as bloqueo {
-  * id_ocupacion : BIGINT <<PK, FK ocupacion.id_ocupacion>>
-  * id_propietario_solicitante : BIGINT <<FK propietario.id_usuario>>
-  * motivo : VARCHAR(250)
-}
-' @sql-table movimiento_pago
-entity "MOVIMIENTO_PAGO\n(movimiento_pago)" as movimiento_pago {
-  * id_movimiento : BIGINT <<PK>>
-  * id_reserva : BIGINT <<FK reserva.id_ocupacion>>
-  * clase : VARCHAR(12)
-  * monto : NUMERIC(16,2)
-  * estado : VARCHAR(12)
-  id_cobro_origen : BIGINT <<FK compuesta>>
-  * clave_idempotencia : VARCHAR(120) <<UQ>>
-  referencia_externa : VARCHAR(140) <<UQ>>
-  * creado_en : TIMESTAMPTZ
-  resuelto_en : TIMESTAMPTZ
-}
-' @sql-table giro
-entity "GIRO\n(giro)" as giro {
-  * porcentaje_comision : NUMERIC(5,4)
-  * monto_comision : NUMERIC(16,2)
-  * id_giro : BIGINT <<PK>>
-  * id_reserva : BIGINT <<FK reserva.id_ocupacion>>
-  id_admin_autorizador : BIGINT <<FK administrador.id_usuario>>
-  * monto : NUMERIC(16,2)
-  * estado : VARCHAR(12)
-  * clave_idempotencia : VARCHAR(120) <<UQ>>
-  referencia_externa : VARCHAR(140) <<UQ>>
-  * creado_en : TIMESTAMPTZ
-  ejecutado_en : TIMESTAMPTZ
-}
-usuario ||--o| cliente : perfil
-usuario ||--o| propietario : perfil
-usuario ||--o| administrador : perfil
-pais ||--o{ division_administrativa : contiene
-division_administrativa ||--o{ ciudad : contiene
-ciudad ||--o{ inmueble : localiza
-propietario ||--o{ inmueble : dueño vigente
-inmueble ||--o{ ocupacion : calendario
-ocupacion ||--o| reserva : RESERVA
-ocupacion ||--o| bloqueo : BLOQUEO
-cliente ||--o{ reserva : solicita
-propietario ||--o{ reserva : propietario pactado histórico
-propietario ||--o{ bloqueo : solicitante
-reserva ||--o{ movimiento_pago : cobra / devuelve
-movimiento_pago |o--o{ movimiento_pago : cobro original / devoluciones
-reserva ||--o{ giro : intentos
-administrador |o--o{ giro : autoriza ejecución
-note top of usuario
-  Especialización PARCIAL y SOLAPADA:
-  cliente, propietario y administrador pueden coexistir.
-  correo_normalizado = lower(btrim(correo_normalizado)); UNIQUE.
+usuario ||--o| administrador : id_usuario
+inmuebles ||--|| asocia : id_i
+propietarios ||--o{ asocia : id_p
+paises ||--o{ banco : id_ps
+ocupacion ||--o| bloqueo : id_ocupacion
+propietarios ||--o{ bloqueo : id_propietario_solicitante
+division_administrativa ||--o{ ciudades : id_division
+paises ||--o{ ciudades : id_ps
+ciudades |o--o{ clientes : id_cd
+usuario ||--o| clientes : id_cl
+usuario ||--o| clientes : id_usuario
+administrador |o--o{ configuracion_comision : id_usuario
+paises ||--o{ division_administrativa : id_pais
+movimiento_pago |o--o{ movimiento_pago : id_cobro_origen, id_reserva
+administrador |o--o{ giro : id_admin_autorizador
+renta ||--o{ giro : id_reserva
+ciudades ||--o{ inmuebles : id_cd
+giro |o--o{ liquidacion_giro : id_giro
+renta ||--o| liquidacion_giro : id_ocupacion
+renta ||--o{ movimiento_pago : id_reserva
+inmuebles ||--o{ ocupacion : id_inmueble
+usuario ||--o| propietarios : id_p
+usuario ||--o| propietarios : id_usuario
+banco ||--o{ relaciona : id_b
+propietarios ||--o| relaciona : id_p
+inmuebles ||--o{ renta : id_i
+clientes ||--o{ renta : id_cl
+ocupacion ||--o| renta : id_ocupacion
+propietarios ||--o{ renta : id_p
+banco ||--o{ vincula : id_b
+clientes ||--o| vincula : id_cl
+note bottom of renta
+  RENTA conserva fechas, cliente e inmueble.
+  reserva es una vista de compatibilidad sin otra tabla.
 end note
-note bottom of ocupacion
-  Soporte técnico del calendario; BLOQUEO es extensión autorizada.
-  El SVG original no representa estas dos estructuras.
-  Especialización TOTAL y DISJUNTA: exactamente reserva O bloqueo.
-  Trigger diferido comprueba el subtipo al confirmar la transacción.
-  EXCLUDE GiST: id_inmueble = y daterange(inicio,fin,'[)') && WHERE activa.
-  Reservas PENDIENTE_PAGO y bloqueos activos ocupan las fechas.
-  Reserva cancelada/expirada libera su ocupación.
-  Las fechas y el inmueble de ocupación son inmutables.
+note bottom of vincula
+  Una cuenta por cliente; relaciona es independiente.
+  Datos desconocidos: pendientes de completar, sin inventarlos.
 end note
-note bottom of reserva
-  Tabla asociativa de la relación RESERVA del SVG.
-  id_ocupacion identifica la ocurrencia y su historial financiero.
-  Inicio no es UNIQUE global: cancelación y nueva contratación pueden repetirlo.
-  Términos históricos inmutables: cliente, propietario pactado,
-  huéspedes, precio, moneda y vencimiento.
-  CONFIRMADA exige cobro completo; FINALIZADA exige salida vencida.
-  expira_en: proceso periódico; no se usa now() en el índice.
-end note
-note bottom of movimiento_pago
-  Moneda derivada de reserva.moneda inmutable, sin columna duplicada.
-  UQ (id_movimiento,id_reserva).
-  FK (id_cobro_origen,id_reserva) -> (id_movimiento,id_reserva).
-  DEVOLUCION exige cobro aprobado de la misma reserva,
-  reserva cancelada/expirada y monto no superior al cobro original.
-  PENDIENTE -> APROBADO / RECHAZADO; no sobrecobros.
-end note
-note bottom of giro
-  Moneda derivada de reserva.moneda inmutable, sin columna duplicada.
-  UQ parcial por id_reserva WHERE estado IN
-  (PENDIENTE,PROCESANDO,EJECUTADO). Varios FALLIDO permitidos.
-  EJECUTADO: reserva finalizada, administrador y fecha obligatorios.
-  Beneficiario = reserva.id_propietario_pactado; monto = neto cobrado.
-  Sin comisión, impuestos ni conversión de moneda.
-end note
-legend bottom
-  * = NOT NULL (incluye PK). PK = primaria; FK = foránea; UQ = UNIQUE.
-  division_administrativa: UQ(id_pais,codigo_oficial).
-  ciudad: UQ(id_division,codigo_oficial); nombre NO es único.
-  Referencias externas son UNIQUE opcionales; varios NULL permitidos.
-  tipo: APARTAMENTO | CASA | CABAÑA | HABITACION | OTRO | NULL (pendiente)
-  es_rural y cerca_mar: sí / no / NULL (pendiente), independientes.
-  inmueble.estado: BORRADOR | PUBLICADO | INACTIVO
-  reserva.estado: PENDIENTE_PAGO | CONFIRMADA | FINALIZADA | CANCELADA | EXPIRADA
-  movimiento_pago.clase: COBRO | DEVOLUCION; estado: PENDIENTE | APROBADO | RECHAZADO
-  giro.estado: PENDIENTE | PROCESANDO | EJECUTADO | FALLIDO
-  Noches, total, saldo, país/región del inmueble y beneficiario del giro se derivan.
-  DELETE de reservas, movimientos financieros y giros está prohibido.
-endlegend
 @enduml

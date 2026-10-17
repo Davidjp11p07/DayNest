@@ -8,6 +8,7 @@ actor Visitante as v
 actor Cliente as c
 actor Propietario as p
 actor Administrador as a
+actor "Ciclo automatico" as sistema
 rectangle DayNest {
   package "Acceso y catálogo" {
     usecase "CU01 Registrarse" as registro
@@ -17,6 +18,8 @@ rectangle DayNest {
     usecase "CU05 Consultar detalle" as detalle
   }
   package "Cliente" {
+    usecase "Gestionar cuenta bancaria\npor perfil y copiar a ambos" as cuentas
+    usecase "Activar perfil complementario" as perfiles
     usecase "CU06 Crear reserva" as reservar
     usecase "CU07 Consultar reservas\ny pagos propios" as propias
     usecase "CU08 Pagar reserva" as pagar
@@ -37,7 +40,9 @@ rectangle DayNest {
     usecase "CU16 Consultar gestión de rentas,\nreservas, pagos y giros" as gestionar
     usecase "CU17 Cancelar reserva\ncomo administrador" as cancelarAdmin
     usecase "CU18 Desactivar inmueble\ncomo administrador" as desactivarAdmin
-    usecase "CU19 Generar giro simulado" as giro
+    usecase "CU19 Liquidar giro simulado\nal finalizar estancia" as giro
+    usecase "Editar comision vigente" as comision
+    usecase "Supervisar y revisar\nliquidaciones pendientes" as supervision
     usecase "CU20 Consultar historial anterior" as historial
   }
 }
@@ -50,6 +55,10 @@ c -- buscar
 c -- detalle
 c -- reservar
 c -- propias
+c -- cuentas
+p -- cuentas
+c -- perfiles
+p -- perfiles
 c -- pagar
 c -- cancelar
 p -- salir
@@ -63,7 +72,9 @@ a -- salir
 a -- gestionar
 a -- cancelarAdmin
 a -- desactivarAdmin
-a -- giro
+sistema -- giro
+a -- comision
+a -- supervision
 a -- historial
 reservar ..> comprobar : <<include>>
 pagar ..> saldo : <<include>>
@@ -73,7 +84,8 @@ legend bottom
   Una persona puede tener perfiles Cliente y Propietario simultáneamente.
   Los actores representan roles. El registro público no crea administradores.
   Iniciar sesión es precondición de las operaciones privadas, no un include.
-  Pago y giro no involucran bancos ni pasarelas externas.
+  Pago y giro simulan operaciones sobre cuentas vinculadas.
+  No se conectan bancos reales. La tasa queda fijada al primer pago aprobado.
   Buscar y consultar detalle son públicos, también para usuarios registrados.
 endlegend
 @enduml

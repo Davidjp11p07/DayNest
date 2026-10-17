@@ -1,6 +1,6 @@
 @startuml
 !include estilo.iuml
-title Identidad, perfiles y ubicaciones
+title Acceso compartido, entidades cliente/propietario y ubicaciones
 hide empty members
 package "co.edu.rentainmuebles.model" {
 interface Identificable {
@@ -32,11 +32,19 @@ class Usuario {
   +getPerfiles(...) : java.util.List<PerfilUsuario>
 }
 class Cliente {
+  -id : Long
+  -nombre : String
+  -correo : String
+  -telefono : String
   -usuario : Usuario
   +getUsuario(...) : Usuario
   +getRol(...) : Rol
 }
 class Propietario {
+  -id : Long
+  -nombre : String
+  -correo : String
+  -telefono : String
   -usuario : Usuario
   +getUsuario(...) : Usuario
   +getRol(...) : Rol

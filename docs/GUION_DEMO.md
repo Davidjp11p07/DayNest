@@ -10,7 +10,7 @@
 8. Entre como propietario1@renta.test / Propietario2026!. Desde **Mis inmuebles**, abra **Bloquear / liberar fechas**. Un bloqueo impide una reserva cruzada; al liberarlo, las fechas se ofrecen nuevamente. Otro propietario no puede bloquear sus inmuebles.
 9. En Publicar/Editar, la ciudad se elige con país y región; la moneda corresponde al país del catálogo. Las tarifas y fotos son datos académicos e ilustraciones.
 10. Entre con el administrador configurado para su instalación. En una instalación demo nueva, la cuenta inicial es admin@renta.test / Admin2026!; cambiarla en la base no modifica los archivos demo. Revise rentas, reservas, cobros/devoluciones y giros. Los resúmenes separan COP/EUR. Abra **Historial anterior**: conserva las operaciones del modelo previo, incluida su comisión histórica, en modo consulta.
-11. Para un giro nuevo, la reserva debe estar cobrada y su salida haber llegado. La tarea la finaliza; **Generar giro** ejecuta una simulación por el neto cobrado **menos la comisión histórica configurada** y conserva al propietario pactado. Antes de la salida, el botón no se habilita. No se falsean fechas para presentar un giro; las pruebas JUnit verifican el caso completo con un fixture temporal.
+11. Para un giro nuevo, la reserva debe estar pagada por completo y su salida haber llegado. La tarea la finaliza y ejecuta automaticamente una simulacion por el total menos la comision historica, con autor SISTEMA y propietario pactado. Si falta cuenta bancaria, registra el motivo y reintenta al corregirla. El administrador supervisa desde Giros; no necesita generar cada giro. Las pruebas JUnit verifican fechas pasadas con un fixture temporal.
 12. Para vencimiento, cree una pendiente, espere 30 minutos y hasta 60 segundos adicionales: pasa a **EXPIRADA**, liberando las fechas. Las pruebas automatizadas comprueban este caso con un vencimiento corto en esquema aislado.
 
 ## Corroborar ciudades en pgAdmin
@@ -49,3 +49,17 @@ SET search_path TO daynest, public;
 ## Automatización sin alterar la demostración
 
 `mvnw.cmd -o test` usa esquemas temporales y confirma reservas concurrentes, pagos, devoluciones, expiración, bloqueos e inmutabilidad. `WebHttpIT` consulta la app sin escribir. La revisión con Chrome del flujo completo se realiza en servidor/esquema temporales; su historial se elimina junto con ese esquema, sin DELETE financiero sobre la base activa.
+
+## Demostración del modelo del profesor
+
+1. Registra cliente, propietario o ambos. Activa el perfil complementario desde Mis perfiles sin perder lo existente.
+2. Abre Mis datos y cuentas. Configura banco, número y tipo para un perfil; verifica que el otro sea independiente.
+3. Marca Guardar en ambos perfiles y guarda. Comprueba los dos formularios, incluidos los ceros iniciales. Cambia después uno sin marcar la casilla.
+4. Guarda la ciudad de residencia del cliente. La etiqueta distingue ciudad, región y país.
+5. Publica o edita un inmueble incluyendo área y habitaciones. Comprueba precio y datos en el detalle y busca con filtros y fechas.
+6. Completa reserva, pago y giro como antes. La comisión e historial se conservan. Las entidades y relaciones aparecen en las diez tablas principales; las otras siete son soporte técnico.
+7. Como administrador, registra un banco y país en Bancos. Los bancos demo son ficticios y los movimientos siguen simulados.
+
+## Flujo financiero actual
+
+Usar una base ficticia con la extension aplicada. Configurar cuentas de ambos perfiles y pagar una reserva. Verificar que el propietario ve importe, tasa historica, neto y estado pendiente durante la estancia. Al terminar la salida, el ciclo finaliza y ejecuta el giro simulado con autor SISTEMA; un reinicio recupera pendientes. Desde Administracion > Giros cambiar la tasa y comprobar que no cambia la de reservas ya pagadas. Una cuenta de propietario faltante muestra motivo pendiente; al corregirla, la siguiente revision puede liquidar sin duplicados. Los fixtures de fechas pasadas pertenecen exclusivamente a las pruebas, no a la base operativa. El script opcional datos-demo-profesor.sql no se ejecuto sobre datos reales.

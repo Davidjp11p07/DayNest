@@ -1,43 +1,55 @@
 @startuml
 !include estilo.iuml
-title CU19 — giro al propietario pactado
-actor Administrador as u
-participant AdministradorServlet as web
-participant AdministracionServiceImpl as admin
-participant GiroServiceImpl as s
-participant UnidadTrabajoDaoJdbc as tx
-participant UsuarioDaoJdbc as usuarios
-participant ReservaDaoJdbc as reservas
-participant PagoDaoJdbc as pagos
-participant GiroDaoJdbc as giros
+title Giro automatico al finalizar la estancia (simulacion)
+actor "Temporizador / reinicio" as reloj
+participant CicloReservas as ciclo
+participant CicloReservasDaoJdbc as dao
 database PostgreSQL as bd
-u -> web : doPost(/admin/generar-giro, id, referencia, CSRF)
-web -> admin : finalizarYGenerarGiro(administradorId, reservaId, referencia)
-admin -> s : generar(administradorId, reservaId, referencia)
-s -> tx : ejecutar(operacion)
-s -> usuarios : buscarPorId(administradorId)
-s -> reservas : buscarPorIdParaActualizar(reservaId)
-s -> giros : buscarPorReserva(reservaId)
-s -> pagos : totalPagado(reservaId)
-note over s : Administrador activo, salida <= hoy,\nCONFIRMADA o FINALIZADA, pago completo y sin giro vigente.
-alt Condición incumplida
-  s --> tx : excepción; rollback
-  s --> web : NegocioException a través de administración
-  web --> u : Mensaje de error
-else Giro permitido
-  opt Reserva todavía CONFIRMADA
-    s -> reservas : actualizarEstado(reservaId, FINALIZADA)
-  end
-  s -> reservas : buscarPorId(reservaId)
-  s -> pagos : totalPagado(reservaId)
-  s -> giros : crear(new Giro(..., propietarioPactado, neto, ...))
-  giros -> bd : INSERT PENDIENTE; UPDATE PROCESANDO\nUPDATE EJECUTADO con administrador y fecha
-  note over giros,bd : Beneficiario derivado de reserva.id_propietario_pactado.\nUQ parcial evita varios giros vigentes para la misma reserva.
-  bd --> giros : giro ejecutado
-  giros --> s : Giro
-  s --> tx : resultado; commit
-  s --> admin : Giro
-  admin --> web : Giro
-  web --> u : Confirmación de giro simulado con comisión histórica
+actor Administrador as admin
+participant AdministradorServlet as web
+participant ComisionService as supervision
+reloj -> ciclo : ejecutar()
+ciclo -> dao : ejecutar()
+dao -> bd : Expirar pendientes y finalizar estancias terminadas
+bd --> dao : commit de calendario
+dao -> bd : Seleccionar FINALIZADAS sin giro ejecutado
+loop Una transaccion por reserva
+ dao -> bd : liquidar_reserva_automatica(id)
+ activate bd
+ bd -> bd : Bloquear renta; comprobar giro vigente e idempotencia
+ bd -> bd : Pago exacto, sin movimientos pendientes ni devoluciones
+ bd -> bd : Comision historica y cuenta del propietario pactado
+ alt Falta una condicion
+  bd -> bd : Registrar PENDIENTE con motivo; no ejecutar giro
+ else Condiciones cumplidas
+  bd -> bd : PENDIENTE -> PROCESANDO -> EJECUTADO
+  bd -> bd : Autor SISTEMA, fecha, snapshot de cuenta y comision
+  bd -> bd : Registrar liquidacion EJECUTADA
+ else Fallo transaccional
+  bd -> bd : Revertir el intento y registrar FALLIDA con motivo
+ end
+ bd --> dao : resultado; sin duplicar giros
+ deactivate bd
 end
+admin -> web : doGet(/admin/giros)
+web -> supervision : porcentaje(administrador)
+web -> supervision : liquidaciones(administrador, true)
+supervision -> bd : Consultar configuracion, importes y motivos
+web --> admin : Supervision; no exige autorizar cada giro correcto
+opt Cambiar porcentaje para pagos nuevos
+ admin -> web : doPost(/admin/comision, porcentaje, CSRF)
+ web -> supervision : cambiar(administrador, porcentaje)
+ supervision -> bd : Nueva version de tasa con autor y fecha
+end
+opt Revisar una incidencia corregida
+ admin -> web : doPost(/admin/reintentar-liquidacion, id, CSRF)
+ web -> supervision : reintentar(administrador, id)
+ supervision -> bd : Repetir validaciones y liquidacion idempotente
+end
+note over dao,bd
+ El ciclo se ejecuta cada minuto y al arrancar.
+ Cada reserva conserva su tasa desde el primer cobro aprobado.
+ El beneficiario procede de renta.id_p, no del inmueble actual.
+ Giros humanos historicos mantienen su autorizacion.
+end note
 @enduml

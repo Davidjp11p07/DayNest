@@ -36,7 +36,7 @@ function Comprobar-Metodo([string]$Tipo, [string]$Metodo, [string]$Archivo) {
     if (-not (Tiene-Metodo $Tipo $Metodo)) { throw "$Archivo : método inexistente $Tipo.$Metodo" }
 }
 $diagramas = @(Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.puml' | Sort-Object Name)
-if ($diagramas.Count -ne 16) { throw 'Se esperaban los 16 diagramas del catálogo.' }
+if ($diagramas.Count -ne 17) { throw 'Se esperaban los 17 diagramas del catálogo.' }
 $cuentaTipos = 0; $cuentaMetodos = 0; $cuentaAtributos = 0
 foreach ($diagrama in $diagramas) {
     $contenido = [IO.File]::ReadAllText($diagrama.FullName)
@@ -89,27 +89,26 @@ $er = [IO.File]::ReadAllText((Join-Path $PSScriptRoot '01_entidad_relacion.puml'
 $tablas = [regex]::Matches($schema, '(?s)CREATE TABLE (?:IF NOT EXISTS\s+)?(\w+)\s*\((.*?)\n\);|CREATE TABLE (?:IF NOT EXISTS\s+)?(cliente|propietario)\s*\((.*?)\);')
 # Analizar tabla por límites de CREATE TABLE; separa columnas de CHECK/EXCLUDE.
 $cantidadColumnas = 0
-foreach ($tabla in @('usuario','cliente','propietario','administrador','pais','division_administrativa','ciudad','inmueble','ocupacion','reserva','bloqueo','movimiento_pago','giro')) {
-    $sqlTabla = [regex]::Match($schema, '(?s)CREATE TABLE (?:IF NOT EXISTS\s+)?' + $tabla + '\s*\((.*?)\);').Groups[1].Value
-    $columnasSql = @([regex]::Matches($sqlTabla, '(?:^|[,\n])\s*(\w+)\s+(?:BIGINT|VARCHAR|CHAR|TEXT|BOOLEAN|SMALLINT|INTEGER|NUMERIC|DATE|TIMESTAMPTZ|TIMESTAMP)\b') | ForEach-Object { $_.Groups[1].Value })
+$tablasSql = [regex]::Matches($schema, '(?is)CREATE TABLE (\w+)\s*\((.*?)\n\);')
+foreach ($tablaSql in $tablasSql) {
+    $tabla = $tablaSql.Groups[1].Value
+    $sqlTabla = $tablaSql.Groups[2].Value
+    $columnasSql = @([regex]::Matches($sqlTabla, '(?im)^\s+(\w+)\s+(?:bigint|varchar|character|text|boolean|smallint|integer|numeric|date|timestamptz|timestamp|jsonb)\b') | ForEach-Object { $_.Groups[1].Value })
     $bloque = [regex]::Match($er, '(?s)entity\s+"[^"]+"\s+as\s+' + $tabla + '\s*\{(.*?)\}').Groups[1].Value
     $columnasDiagrama = @([regex]::Matches($bloque, '(?m)^\s*\*?\s*(\w+)\s*:') | ForEach-Object { $_.Groups[1].Value })
     if (@(Compare-Object $columnasSql $columnasDiagrama).Count -ne 0) { throw "Columnas incoherentes en $tabla" }
     foreach ($columna in $columnasDiagrama) {
-        $sqlLinea = [regex]::Match($sqlTabla, '\b' + $columna + '\s+([^\r\n]*?)(?=,\s*\w+\s+(?:BIGINT|VARCHAR|CHAR|TEXT|BOOLEAN|SMALLINT|INTEGER|NUMERIC|DATE|TIMESTAMPTZ|TIMESTAMP)\b|\r?\n|$)').Value
         $umlLinea = [regex]::Match($bloque, '(?m)^\s*\*?\s*' + $columna + '\s*:.*$').Value
-        foreach ($clave in @(@('PRIMARY KEY','PK'),@('REFERENCES','FK'),@('UNIQUE','UQ'))) {
-            if ($tabla -eq 'movimiento_pago' -and $columna -eq 'id_cobro_origen' -and $clave[1] -eq 'FK') { continue }
-            if ($tabla -eq 'usuario' -and $columna -eq 'correo_normalizado' -and $clave[1] -eq 'UQ') {
-                if ($schema -notmatch 'CREATE UNIQUE INDEX ux_usuario_correo_normalizado ON usuario \(correo_normalizado\)') { throw 'Falta índice único de correo canónico' }
-                if ($umlLinea -notmatch '\bUQ\b') { throw 'Falta UQ del correo en el diagrama' }
-                continue
+        foreach ($clave in @(@('PRIMARY KEY','PK'),@('FOREIGN KEY','FK'),@('UNIQUE','UQ'))) {
+            $tiene = $false
+            foreach ($restriccion in [regex]::Matches($schema, '(?is)ALTER TABLE ONLY ' + $tabla + '\s+ADD CONSTRAINT \w+ ' + $clave[0] + '\s*\(([^)]+)\)')) {
+                if (($restriccion.Groups[1].Value -split ',\s*') -contains $columna) { $tiene=$true }
             }
-            if (($sqlLinea -match $clave[0]) -ne ($umlLinea -match ('\b' + $clave[1] + '\b'))) { throw "Clave incoherente: $tabla.$columna $($clave[1])" }
+            if ($tabla -eq 'usuario' -and $columna -eq 'correo_normalizado' -and $clave[1] -eq 'UQ') { $tiene=$schema -match 'CREATE UNIQUE INDEX ux_usuario_correo_normalizado ON usuario' }
+            if ($tiene -ne ($umlLinea -match ('\b' + $clave[1] + '\b'))) { throw "Clave incoherente: $tabla.$columna $($clave[1])" }
         }
     }
     $cantidadColumnas += $columnasSql.Count
 }
-if ([regex]::Matches($er, '(?m)^entity\s').Count -ne 13) { throw 'El ER debe contener exactamente trece tablas.' }
-$resumen = "OK: $($diagramas.Count) diagramas; $cuentaTipos referencias a tipos, $cuentaMetodos métodos, $cuentaAtributos atributos; 13 tablas y $cantidadColumnas columnas con PK/FK/UQ comprobadas."
-Write-Output $resumen
+if ($tablasSql.Count -ne 19 -or [regex]::Matches($er,'(?m)^entity\s').Count -ne 19) { throw 'Deben existir diez tablas del profesor y nueve de soporte.' }
+Write-Output "OK: $($diagramas.Count) diagramas; $cuentaTipos tipos, $cuentaMetodos metodos, $cuentaAtributos atributos; 19 tablas y $cantidadColumnas columnas comprobadas."

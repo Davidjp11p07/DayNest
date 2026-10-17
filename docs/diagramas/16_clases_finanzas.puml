@@ -27,6 +27,10 @@ class Pago {
   +getEstado(...) : EstadoPago
 }
 class Giro {
+  -origenAutorizacion : String
+  -cuentaDestino : String
+  +getOrigenAutorizacion() : String
+  +getCuentaDestino() : String
   -porcentajeComision : BigDecimal
   -montoComision : BigDecimal
   +getPorcentajeComision(...) : BigDecimal

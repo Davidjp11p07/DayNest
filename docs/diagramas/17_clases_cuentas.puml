@@ -1,0 +1,34 @@
+@startuml
+!include estilo.iuml
+title Entidades, cuentas bancarias y acceso compartido
+hide empty members
+class Usuario
+class Cliente
+class Propietario
+class Banco
+class CuentaBancaria
+class DatosPerfil
+class DatosCuentaService {
+ +bancos(...) : List
+ +consultar(...) : DatosPerfil
+ +guardar(...) : void
+ +residencia(...) : void
+ +crearBanco(...) : void
+}
+Cliente --> Usuario : acceso tecnico
+Propietario --> Usuario : acceso tecnico
+DatosPerfil --> CuentaBancaria
+DatosPerfil --> Cliente : perfil cliente
+DatosPerfil --> Propietario : perfil propietario
+CuentaBancaria --> Banco
+DatosCuentaService --> DatosPerfil
+note bottom of DatosCuentaService
+ Cada perfil mantiene una cuenta independiente.
+ Copiar en ambos requiere los dos perfiles activos.
+ El guardado es atomico y usa la identidad de sesion.
+end note
+note bottom of CuentaBancaria
+ vincula y relaciona almacenan banco, numero y tipo.
+ El numero es texto para conservar ceros iniciales.
+end note
+@enduml

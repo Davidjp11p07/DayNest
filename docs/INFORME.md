@@ -13,7 +13,7 @@ DayNest es una aplicación web en Java conectada a PostgreSQL que permite public
 
 Este informe documenta el código actual y reúne los diagramas de casos de uso, clases, interacción mediante secuencias y actividades exigidos por el enunciado. Añade el modelo de base de datos como soporte del diseño. Los PDF de clase se utilizan como guía de notación y fichas; no constituyen una rúbrica exhaustiva del profesor.
 
-El alcance financiero es académico y local: aprobar un cobro, devolverlo o ejecutar un giro registra una simulación en la base de datos. No hay pasarela, banco ni conversión monetaria. La comisión es configurable (10% en la configuración actual) y su porcentaje e importe se conservan en cada giro. Las fotografías son ilustrativas locales asignadas por identificador; no hay subida de fotos, reseñas, recuperación de contraseña o edición de perfil implementadas. La clasificación tipo/campo/mar sí es persistida, puede estar pendiente y se modifica por el propietario.
+El alcance financiero es académico y local: aprobar un cobro, devolverlo o ejecutar un giro registra una simulación en la base de datos. No hay pasarela, banco ni conversión monetaria. La comisión es configurable (30 % inicial, editable por el administrador) y su porcentaje e importe se conservan en cada giro. Las fotografías son ilustrativas locales asignadas por identificador; no hay subida de fotos, reseñas, recuperación de contraseña implementadas; los datos y cuentas de los perfiles se editan desde Mi cuenta. La clasificación tipo/campo/mar sí es persistida, puede estar pendiente y se modifica por el propietario.
 
 ## 2. Requisitos y trazabilidad
 
@@ -26,7 +26,7 @@ Los identificadores RF se asignan en este informe para organizar la trazabilidad
 | RF03 | Búsqueda por ubicación, fechas, precio, capacidad y clasificación; detalle | CU04–CU05 |
 | RF04 | Crear, consultar y cancelar reservas con validación de fechas/capacidad | CU06–CU07, CU09, CU17 |
 | RF05 | Pago, saldo, historial de movimientos y devolución simulados | CU07–CU09, CU17 |
-| RF06 | Giro neto al beneficiario histórico tras la estancia | CU15, CU19 |
+| RF06 | Liquidar automaticamente la estancia finalizada con pago completo, comision historica y cuenta del propietario pactado; conservar auditoria y reintentos. | CU15, CU19 |
 | RF07 | Interfaz web para los distintos usuarios | CU01–CU20 |
 | RF08 | Bloquear y liberar fechas del inmueble propio | CU13–CU14 |
 | RF09 | Supervisión administrativa de rentas, reservas, pagos y giros | CU16–CU19 |
@@ -53,9 +53,9 @@ La arquitectura tiene detalles concretos: CatalogoService consulta CiudadDao; Bl
 
 ## 4. Modelo de datos y reglas
 
-El esquema operativo daynest contiene 13 tablas: usuario, cliente, propietario, administrador, pais, division_administrativa, ciudad, inmueble, ocupacion, reserva, bloqueo, movimiento_pago y giro. Son la transformación del SVG conceptual más la relación asociativa RESERVA y las extensiones autorizadas OCUPACION/BLOQUEO. El SVG original del profesor se conserva sin cambios; la ampliación tipo/entorno se explica en el modelo lógico.
+El destino de schema.sql contiene diez tablas del profesor (propietarios, inmuebles, ciudades, paises, banco, clientes, asocia, relaciona, vincula y renta) y nueve extensiones tecnicas. La nomenclatura ya esta aplicada; la extension financiera esta aplicada en la base operativa. Cliente y propietario son entidades separadas con acceso tecnico compartido. Las vistas preservan contratos sin duplicar datos. El esquema completo esta en esquema_relacional.md.
 
-Usuario tiene especialización parcial y solapada en la BD; Java la implementa con composición de perfiles. Ocupacion tiene subtipo reserva o bloqueo, total y disjunto, comprobado al confirmar la transacción. El calendario usa intervalos [inicio, fin): el día de salida no se ocupa. La exclusión GiST evita cruces entre ocupaciones activas, incluidas reservas pendientes y bloqueos.
+Usuario es el acceso tecnico compartido; clientes y propietarios tienen entidades y cuentas bancarias separadas. Ocupacion pertenece exactamente a renta o bloqueo. El calendario usa [inicio, fin): la salida no ocupa noches. La exclusion GiST impide cruces de ocupaciones activas.
 
 El catálogo precargado contempla 32 capitales colombianas y Cartagena, Murcia, España. Las etiquetas muestran ciudad, región y país; los identificadores distinguen homónimos. La búsqueda por texto normaliza tildes y mayúsculas. Los importes conservan COP o EUR según la reserva y se resumen por moneda.
 
@@ -146,7 +146,7 @@ Publicar crea un inmueble PUBLICADO; editar conserva el estado existente y verif
 
 La actividad sigue el flujo de simulación implementado. El soporte de estados fallidos en la base no se presenta como una integración bancaria existente.
 
-### 5.5 Modelo lógico complementario
+### 5.5 Modelo lógico del profesor y soporte técnico
 
 Se presenta como apoyo a los diagramas de diseño solicitados, con todas las columnas, claves, cardinalidades y restricciones principales del schema.sql vigente.
 
@@ -657,33 +657,24 @@ Una precondición indica cuándo el caso puede terminar con éxito; el sistema v
 
 **Relaciones:** Sin include/extend adicional.
 
-### 6.19 CU19 — Generar giro simulado
+### 6.19 CU19 - Liquidar giro simulado al finalizar la estancia
 
-**Actores e iniciador:** Administrador
+**Actor principal:** Ciclo automatico del backend. Administrador supervisa y resuelve incidencias.
 
-**Propósito:** Liquidar el neto cobrado al propietario pactado después de la estadía.
+**Precondiciones:** Estancia terminada y renta FINALIZADA, pago aprobado completo, sin movimientos pendientes ni devoluciones aprobadas, tasa historica y cuenta valida del propietario pactado.
 
-**Precondiciones:** Administrador activo autenticado; salida no posterior a hoy; reserva CONFIRMADA o FINALIZADA; neto aprobado cubre total; ningún giro no fallido vigente.
+**Postcondiciones:** Giro EJECUTADO por el neto, con autor SISTEMA, fecha y cuenta historica. Si no se cumplen condiciones, registra PENDIENTE con motivo. Un fallo transaccional revierte el intento y registra FALLIDA; nunca marca como ejecutado un fallo.
 
-**Postcondiciones:** Éxito: reserva FINALIZADA y giro EJECUTADO por neto cobrado, con administrador y fecha. Fallo: rollback; no hay liquidación parcial.
+**Referencias:** CicloReservas.ejecutar; CicloReservasDaoJdbc.ejecutar; liquidar_reserva_automatica; ComisionService; restricciones de giro y movimiento_pago.
 
-**Pantallas y salida:** /admin/generar-giro → /admin/reservas; consulta /admin/giros
+| Paso | Sistema | Supervision |
+|---|---|---|
+| 1 | Al arrancar y cada minuto finaliza estancias y consulta rentas sin giro ejecutado. | No requiere abrir la aplicacion. |
+| 2 | Bloquea cada renta y comprueba saldo, estado, tasa y cuenta del beneficiario pactado. | Consulta motivo de incidencias. |
+| 3 | PENDIENTE -> PROCESANDO -> EJECUTADO; captura cuenta y registra resultado. | Consulta comision, neto, destino y autor. |
+| 4 | Repite validaciones en cada reintento, sin duplicar giros. | Puede solicitar revision tras corregir una incidencia. |
 
-**Referencias:** RF06, RF09 · AdministradorServlet.doPost; AdministracionServiceImpl.finalizarYGenerarGiro; GiroServiceImpl.generar; GiroDaoJdbc.crear
-
-**Resumen:** El actor inicia generar giro simulado; DayNest valida las condiciones y presenta el resultado descrito en el curso normal.
-
-**Tipo:** principal, de usuario, real (interfaz existente).
-
-| Paso | Acción del usuario | Respuesta del sistema |
-| --- | --- | --- |
-| 1 | Selecciona una reserva girable e indica referencia opcional. | Valida administrador, bloquea reserva y consulta giro vigente y neto aprobado. |
-| 2 | Confirma generar giro. | Comprueba salida, estado y pago completo; si seguía CONFIRMADA actualiza a FINALIZADA. |
-| 3 | Revisa el resultado. | Toma propietario pactado histórico y crea giro PENDIENTE → PROCESANDO → EJECUTADO con neto menos comisión histórica; confirma transacción. |
-
-**Alternativas y errores:** 1a. Giro vigente ya existente: rechazar. 2a. Estancia futura, reserva no válida o pago incompleto: rechazar. 3a. Referencia duplicada o restricción incumplida: rollback. BD/DAO conservan intentos FALLIDO y admiten nuevo intento, pero el botón implementa simulación exitosa; no existe integración bancaria.
-
-**Relaciones:** Sin include/extend adicional.
+La comision inicial es 30 %, editable desde Administracion > Giros para pagos nuevos. Se fija al primer cobro aprobado. Los giros humanos anteriores mantienen autorizacion y valores; el endpoint manual se conserva como compatibilidad, no es un requisito del flujo nuevo. No se transfieren fondos reales.
 
 ### 6.20 CU20 — Consultar historial anterior
 
@@ -724,7 +715,7 @@ Los comportamientos auxiliares no son tres pantallas adicionales ni métodos inv
 
 ## 7. Verificación y demostración
 
-El comprobador local compara nombres de clases, interfaces, atributos y métodos, además de las 13 tablas y 73 columnas con PK/FK/UQ. PlantUML valida sintaxis y genera las imágenes localmente. Este control no sustituye una revisión semántica: las relaciones, condiciones, rutas y secuencias se contrastaron con servlets, servicios, DAO y schema.sql durante la actualización.
+El comprobador local compara nombres de clases, interfaces, atributos y métodos, además de las 19 tablas y 120 columnas con PK/FK/UQ. PlantUML valida sintaxis y genera las imágenes localmente. Este control no sustituye una revisión semántica: las relaciones, condiciones, rutas y secuencias se contrastaron con servlets, servicios, DAO y schema.sql durante la actualización.
 
 Las pruebas funcionales y de persistencia existentes cubren fechas y capacidad, bloqueo y concurrencia, intervalos adyacentes, términos históricos, pagos, devolución, idempotencia, expiración y giro neto. El registro previo de la implementación informa 65 pruebas satisfactorias; corresponde a aquella ejecución, no a una nueva ejecución causada por este informe. La presente actualización es documental y no modifica código Java ni datos operativos.
 
@@ -755,3 +746,15 @@ Antes de entregar, completar nombres del grupo, asignatura, institución y docen
 - Código fuente local: src/main/java/co/edu/rentainmuebles (model, servlet, service, dao, filter, config); src/main/webapp/WEB-INF/views; schema.sql.
 - Documentación del proyecto: MODELO_DEFINITIVO.md, ADAPTACION_SVG.md, FILTROS_INMUEBLES.md, GUION_DEMO.md y diseno/CREDITOS_IMAGENES.md.
 - Herramienta de diagramación: PlantUML 1.2025.10, JAR obtenido de Maven Central; renderizado local con Smetana y Graphviz integrado en Windows para casos de uso. Su ubicación y checksum se documentan en diagramas/README.md.
+
+## Datos bancarios y residencia
+
+Desde Mi cuenta → Mis datos y cuentas, el cliente y el propietario guardan banco, número y tipo de cuenta en sus relaciones independientes. La casilla de copia guarda los mismos datos en ambos perfiles de forma atómica; no activa perfiles ni modifica cuentas de otras personas. La residencia del cliente se selecciona por ciudad. La administración gestiona bancos y países del catálogo. Los datos desconocidos de registros migrados aparecen pendientes, sin inventar cuentas ni ubicaciones.
+
+El precio por noche pertenece a ASOCIA. El inmueble incluye área en m² y habitaciones, editables por su propietario, sin alterar las tarifas pactadas de rentas previas. Los pagos y giros nuevos conservan la cuenta bancaria usada si estaba configurada; posteriores cambios no reescriben ese historial. Los pagos siguen simulados.
+
+![Cuentas y entidades independientes](diagramas/17_clases_cuentas.svg)
+
+## Extension financiera y estado de activacion
+
+El informe tecnico GIROS_AUTOMATICOS.md detalla configuracion versionada, tasa historica, origen SISTEMA, cuenta al ejecutar, auditoria, pruebas y plan de migracion. La nomenclatura esta aplicada. La extension financiera se probo en copias aisladas y se aplico con respaldo el 17 de octubre de 2026; conserva 80 inmuebles y el historial original.
