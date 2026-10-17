@@ -8,6 +8,7 @@ participant UnidadTrabajoDaoJdbc as tx
 participant UsuarioDaoJdbc as usuarios
 participant ReservaDaoJdbc as reservas
 participant PagoDaoJdbc as pagos
+participant DatosCuentaService as datos
 database PostgreSQL as bd
 u -> web : doGet(/cliente/pagar?id=...)
 web -> s : resumen(clienteId, reservaId)
@@ -15,14 +16,15 @@ s -> tx : ejecutar(operacion)
 s -> usuarios : buscarPorId(clienteId)
 s -> reservas : buscarPorId(reservaId)
 s -> pagos : totalPagado(reservaId)
-s -> pagos : tieneCuentaCliente(reservaId)
 pagos -> bd : SUM(cobros aprobados - devoluciones aprobadas)
 bd --> pagos : neto pagado
 pagos --> s : BigDecimal
 s --> web : ResumenReserva(noches, total pactado, pagado, saldo)
+web -> datos : consultar(clienteId, CLIENTE)
+web -> datos : bancos()
 web --> u : Saldo = total pactado - total pagado
-u -> web : doPost(id, metodo, referencia, CSRF)
-web -> s : registrar(clienteId, reservaId, metodo, referencia)
+u -> web : doPost(id, cuentaPago, bancoId, numeroCuenta, tipoCuenta, referencia, CSRF)
+web -> s : registrarTransferencia(clienteId, reservaId, referencia, cuentaOcasional)
 s -> tx : ejecutar(operacion)
 s -> usuarios : buscarPorId(clienteId)
 s -> reservas : buscarPorIdParaActualizar(reservaId)
@@ -31,7 +33,9 @@ reservas --> s : Reserva
 note over s : Comprueba pertenencia, PENDIENTE_PAGO,\nno vencida y entrada futura.
 s -> reservas : existeCruce(inmuebleId, periodo, reservaId)
 s -> pagos : totalPagado(reservaId)
-s -> pagos : tieneCuentaCliente(reservaId)
+opt Se elige la cuenta registrada
+  s -> pagos : tieneCuentaCliente(reservaId)
+end
 alt Regla incumplida o importe inválido
   s --> tx : excepción; rollback
   s --> web : NegocioException
@@ -39,14 +43,14 @@ alt Regla incumplida o importe inválido
 else Pago permitido
   s -> pagos : crear(new Pago(..., total - pagado, ...))
   pagos -> bd : INSERT COBRO con clave idempotente\nUPDATE PENDIENTE a APROBADO (simulación)
-  bd -> bd : Fijar tasa vigente y snapshot de la cuenta cliente
+  bd -> bd : Validar banco y cuenta; guardar TRANSFERENCIA y cuenta en JSONB\nFijar comision; no actualizar vincula ni relaciona
   bd --> pagos : movimiento aprobado
   pagos --> s : Pago
   s -> reservas : actualizarEstado(reservaId, CONFIRMADA)
-  s -> reservas : buscarPorId(reservaId)
+  s -> pagos : buscarPorId(pagoId)
   s --> tx : resultado; commit
   s --> web : Pago de reserva confirmada
   web --> u : Confirmación y saldo actualizado
 end
-note over pagos,bd : BD impide sobrecobro y referencias duplicadas.\nEl método elegido no tiene columna persistida.\nNo existe una llamada a banco o pasarela.
+note over pagos,bd : BD impide sobrecobro y referencias duplicadas.\nMetodo, cuenta y uso se conservan en JSONB.\nNo existe una llamada a banco o pasarela.
 @enduml

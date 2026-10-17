@@ -22,7 +22,7 @@ endif
 if (¿Decide pagar?) then (sí)
   :Vincular banco, numero y tipo en su perfil cliente;
 :Abrir pago y revisar saldo;
-  :Elegir método e indicar referencia opcional;
+  :Elegir cuenta registrada u ocasional para transferencia\ne indicar referencia opcional;
   :Enviar pago;
   |DayNest|
   :Bloquear reserva y validar pertenencia, estado y vencimiento;

@@ -1,6 +1,6 @@
 # DayNest — Tu espacio, tus días
 
-Aplicación académica web Java 17, Jakarta Servlet/JSP/JSTL, JDBC y PostgreSQL. El modelo vigente sigue las seis entidades del PDF del profesor y las aclaraciones sobre cuentas bancarias de clientes y propietarios. La version preparada tiene diez tablas principales y nueve extensiones tecnicas que conservan autenticación, calendario y finanzas. [Modelo y trazabilidad](docs/MODELO_DEFINITIVO.md).
+Aplicación académica web Java 17, Jakarta Servlet/JSP/JSTL, JDBC y PostgreSQL. El modelo vigente sigue las seis entidades del PDF del profesor y las aclaraciones sobre cuentas bancarias de clientes y propietarios. La version actual tiene diez tablas principales y nueve extensiones tecnicas que conservan autenticación, calendario y finanzas. [Modelo y trazabilidad](docs/MODELO_DEFINITIVO.md).
 
 Los pagos, devoluciones y giros son simulados: no hay banco ni pasarela real. No hay impuestos, descuentos ni conversión monetaria. La comisión es configurable y se conserva en cada giro.
 
@@ -53,7 +53,7 @@ java -cp "target/classes;target/lib/*" co.edu.rentainmuebles.verification.Inicia
 java -cp "target/classes;target/lib/*" co.edu.rentainmuebles.verification.InspeccionarBD
 ```
 
-`schema.sql` instala directamente las 19 tablas y las vistas de compatibilidad. El inicializador rechaza un esquema existente. `data.sql` carga geografía, alojamientos y usuarios de demostración; su recarga nunca crea administradores. `admin-demo.sql` crea explícitamente el administrador de una instalación demo nueva y rechaza bases con administrador. No cambia las credenciales personalizadas de una instalación existente.
+`sql/instalacion/schema.sql` instala directamente las 19 tablas y las vistas de compatibilidad. El inicializador rechaza un esquema existente. `sql/instalacion/data.sql` carga geografía, alojamientos y usuarios de demostración; su recarga nunca crea administradores. `sql/demostracion/admin-demo.sql` crea explícitamente el administrador de una instalación demo nueva y rechaza bases con administrador. No cambia las credenciales personalizadas de una instalación existente.
 
 ## Modelo del profesor
 
@@ -74,7 +74,7 @@ La exclusión de intervalos activos `[entrada,salida)` impide solapamientos. La 
 
 El plazo de pago es de 30 minutos desde la creación, establecido por PostgreSQL. Una tarea cada 60 segundos expira pendientes y finaliza estancias. La base rechaza cobros y confirmaciones tardíos. Si Jetty está apagado, procesa los vencimientos al arrancar. La cancelación pagada previa a la entrada devuelve los cobros mediante simulación transaccional.
 
-En la version actual, el cliente necesita una cuenta vinculada para pagar. DayNest registra el importe y lo administra hasta la salida. El primer cobro aprobado fija la comision historica. El ciclo liquida las estancias finalizadas, con autor SISTEMA y cuenta capturada al ejecutar, si el pago esta completo y no hay devoluciones ni incidencias. Los casos pendientes o fallidos conservan motivo y se reintentan sin duplicar giros.
+En la version actual, el cliente paga mediante transferencia bancaria simulada, usando su cuenta registrada o una cuenta ocasional. La cuenta ocasional solo se conserva en ese pago y no cambia las cuentas predeterminadas de ninguno de los perfiles. DayNest registra el importe y lo administra hasta la salida. El primer cobro aprobado fija la comision historica. El ciclo liquida las estancias finalizadas, con autor SISTEMA y cuenta capturada al ejecutar, si el pago esta completo y no hay devoluciones ni incidencias. Los casos pendientes o fallidos conservan motivo y se reintentan sin duplicar giros.
 
 **Administracion > Giros** permite editar el porcentaje para los pagos nuevos y supervisar/revisar incidencias. El valor inicial acordado es 30 %. La tasa de operaciones ya pagadas y los giros anteriores no cambia al editarla. negocio.properties conserva el porcentaje de respaldo para esquemas anteriores y la zona horaria; tras la migracion, la configuracion persistida es la autoridad del porcentaje. No se necesita reiniciar para editarlo desde la cuenta administrativa.
 
@@ -106,20 +106,48 @@ JUnit crea esquemas temporales y los retira al terminar; no reinicia la base act
 - [Guion de demostración](docs/GUION_DEMO.md).
 - [Informe Markdown](docs/INFORME.md), [HTML](docs/INFORME.html) y [PDF](docs/INFORME.pdf).
 - [Fuentes y herramientas de diagramas](docs/diagramas/README.md).
-- [Diseño](docs/diseno/DISENO.md) y [créditos de imágenes](docs/diseno/CREDITOS_IMAGENES.md).
+- [Créditos de imágenes](docs/diseno/CREDITOS_IMAGENES.md).
 
 ## Demo opcional
 
-datos-demo-profesor.sql agrega un pais, ciudad y banco ficticios, completa cuentas y residencia solo de correos @renta.test, y area/habitaciones pendientes solo de inmuebles de propietarios demo. Conserva cuentas existentes. **No se ejecuto sobre la base operativa.** Se recomienda una base de demostracion independiente.
+sql/demostracion/datos-demo-profesor.sql agrega un pais, ciudad y banco ficticios, completa cuentas y residencia solo de correos @renta.test, y area/habitaciones pendientes solo de inmuebles de propietarios demo. Conserva cuentas existentes. **No se ejecuto sobre la base operativa.** Se recomienda una base de demostracion independiente.
 
-Con el esquema final instalado y data.sql cargado, desde psql:
+Con el esquema final instalado y sql/instalacion/data.sql cargado, desde psql:
 
 ```sql
 SET search_path TO daynest, public;
-\i datos-demo-profesor.sql
+\i sql/demostracion/datos-demo-profesor.sql
 ```
 
 Para instalar desde un clon nuevo sin dependencias descargadas, ejecuta primero `.\mvnw.cmd package` sin `-o`, con JDK 17 instalado. `-o` corresponde al equipo que ya tiene Maven y dependencias en cache. PostgreSQL debe estar iniciado y las credenciales locales en db.properties.
+
+## Organizacion de scripts SQL
+
+### Comisiones e ingresos por inmueble
+
+**Administración → Comisiones e ingresos** muestra comisiones liquidadas de giros ejecutados, comisiones pendientes estimadas y detalle por inmueble y arriendo. **Propietario → Mis ingresos** muestra el neto liquidado a su favor y el pendiente estimado por cada inmueble, incluyendo inmuebles sin rentas e ingresos históricos como beneficiario de reservas anteriores.
+
+Los importes se separan por moneda y usan la tasa histórica. Reservas canceladas/devueltas y pagos incompletos no se presentan como ganancias pendientes. El historial se filtra por inmueble y tiene páginas de 20 arriendos; los acumulados abarcan todo el filtro, no solo la página visible. Son importes de la simulación, no una billetera ni un saldo bancario. Estas consultas no añaden tablas o columnas ni modifican operaciones.
+
+Verificación de esta ampliación: 159 pruebas sin fallos, incluyendo 14 casos de ingresos; siete controles en Chrome sobre un esquema HTTP aislado. Se comprobaron monedas, cancelaciones, varios cobros sin duplicar importes, tasa histórica, cambio de propietario, filtros, paginación y permisos.
+
+### Transferencias y cuenta de uso único
+
+En el pago se elige **Usar mi cuenta registrada** o **Usar otra cuenta solo para este pago**. La segunda opción pide banco del catálogo, número y tipo de cuenta; no reemplaza la cuenta predeterminada del cliente ni la del propietario. También permite pagar si aún no existe una cuenta predeterminada. El único método admitido es transferencia bancaria simulada.
+
+Cada cobro conserva método, banco, cuenta, tipo y uso en `movimiento_pago.cuenta_bancaria_pactada` (JSONB). Administración e historial muestran la cuenta enmascarada. Una devolución conserva la cuenta del cobro original. Los pagos antiguos sin método registrado no se reclasifican como transferencias.
+
+Para actualizar una instalación financiera anterior, con Jetty detenido y Java configurado:
+
+```powershell
+java -cp "target/classes;target/lib/*" co.edu.rentainmuebles.verification.MigrarPagosTransferencia --aplicar
+```
+
+El comando genera un respaldo y reemplaza funciones en una transacción, comparando las huellas de las 19 tablas. No crea tablas, no añade columnas y no modifica filas históricas. Una instalación nueva incluye estas funciones y comienza con la comisión del 30 %.
+
+Actualización aplicada en este equipo con respaldo `.tools/respaldos/antes-modelo-20261017-054219.dump`. Verificación: 145 pruebas sin fallos y siete controles de navegador en un esquema aislado, incluyendo cuenta ocasional sin predeterminada, ausencia de cambios en ambos perfiles e historial administrativo.
+
+Los scripts estan agrupados en `sql/instalacion`, `sql/demostracion`, `sql/migraciones` y `sql/mantenimiento`. Consulta [la guia de SQL](sql/README.md) para identificar su uso. Las herramientas Java se ejecutan desde la raiz del proyecto; los fixtures historicos permanecen en `src/test/resources`.
 
 ## Limpieza del proyecto
 

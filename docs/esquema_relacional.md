@@ -72,3 +72,20 @@ Nomenclatura aplicada con respaldo .tools/respaldos/antes-modelo-20261017-001157
 La extension financiera se ensayó sobre copia restaurada del respaldo .tools/respaldos/antes-modelo-20261017-003441.dump. Conserva las columnas originales y los giros existentes; inicializa a 30 % los pagos antiguos sin giro vigente, segun lo confirmado por el usuario. El porcentaje de giros anteriores se mantiene.
 
 El plan y las verificaciones de la extension estan en [GIROS_AUTOMATICOS.md](GIROS_AUTOMATICOS.md). Aplicacion operativa con respaldo `.tools/respaldos/antes-modelo-20261017-004616.dump`, conservando las columnas originales y los 80 inmuebles.
+
+## Transferencias y cuenta utilizada
+
+Los nuevos cobros conservan en movimiento_pago.cuenta_bancaria_pactada (JSONB) metodo=TRANSFERENCIA, uso=REGISTRADA u OCASIONAL, id_banco, banco, numero_cuenta y tipo_cuenta. La cuenta ocasional no modifica VINCULA ni RELACIONA. Las devoluciones copian la cuenta del cobro original. Los registros antiguos sin metodo permanecen desconocidos; no se reescriben. No se agregan tablas ni columnas: permanecen 19 tablas y 120 columnas.
+
+Consulta del método y la cuenta realmente asociados a cada movimiento:
+
+```sql
+SELECT id_movimiento, id_reserva, clase, estado, monto,
+       COALESCE(cuenta_bancaria_pactada->>'metodo', 'NO_REGISTRADO') AS metodo,
+       cuenta_bancaria_pactada->>'uso' AS uso_cuenta,
+       cuenta_bancaria_pactada->>'banco' AS banco,
+       cuenta_bancaria_pactada->>'numero_cuenta' AS numero_cuenta,
+       cuenta_bancaria_pactada->>'tipo_cuenta' AS tipo_cuenta
+FROM daynest.movimiento_pago
+ORDER BY id_movimiento DESC;
+```

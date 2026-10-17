@@ -35,6 +35,7 @@ rectangle DayNest {
     usecase "CU13 Crear bloqueo" as bloquear
     usecase "CU14 Liberar bloqueo" as liberar
     usecase "CU15 Consultar reservas\nrecibidas y giros" as recibidas
+    usecase "CU22 Consultar ingresos propios\npor inmueble y arriendo" as ingresosPropietario
   }
   package "Administración" {
     usecase "CU16 Consultar gestión de rentas,\nreservas, pagos y giros" as gestionar
@@ -44,6 +45,7 @@ rectangle DayNest {
     usecase "Editar comision vigente" as comision
     usecase "Supervisar y revisar\nliquidaciones pendientes" as supervision
     usecase "CU20 Consultar historial anterior" as historial
+    usecase "CU21 Consultar comisiones\npor inmueble y arriendo" as ingresosAdmin
   }
 }
 v -- registro
@@ -76,6 +78,8 @@ sistema -- giro
 a -- comision
 a -- supervision
 a -- historial
+a -- ingresosAdmin
+p -- ingresosPropietario
 reservar ..> comprobar : <<include>>
 pagar ..> saldo : <<include>>
 devolver ..> cancelar : <<extend>>\n[cobro aprobado con importe por devolver]

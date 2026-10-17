@@ -1,11 +1,15 @@
 # Diagramas de diseño DayNest
 
-Actualizados contra Java y `schema.sql` el 10 de octubre de 2026. Se incluyen **16 fuentes PlantUML y 16 SVG**. Finanzas se separó del calendario para mejorar la lectura. El [informe editable](../INFORME.md), [HTML autónomo](../INFORME.html) y [PDF](../INFORME.pdf) integran los cuatro tipos UML solicitados y 20 fichas principales de casos de uso.
+## Entrega académica basada en el ER del profesor
+
+Los documentos adicionales [Diagrama de clases](profesor/DIAGRAMA_CLASES.md) y [Diagrama de casos de uso](profesor/DIAGRAMA_CASOS_USO.md) se contrastaron con el enunciado completo, su ER, los PDF de UML y las aclaraciones del usuario. Cubren las seis entidades del profesor, cuentas independientes y copia voluntaria, así como la gestión administrativa de reservas, rentas, pagos y giros exigida en el texto. Distinguen los atributos del ER de los conceptos y reglas propuestos para completar el análisis. Cada documento incluye su imagen SVG y fuente PlantUML. Son entregas académicas independientes de los diagramas de implementación que siguen, guardadas en `profesor/` para conservar separados ambos alcances.
+
+Actualizados contra Java y `sql/instalacion/schema.sql` el 17 de octubre de 2026. Se incluyen **17 fuentes PlantUML y 17 SVG**. Finanzas se separó del calendario para mejorar la lectura. El [informe editable](../INFORME.md), [HTML autónomo](../INFORME.html) y [PDF](../INFORME.pdf) integran los cuatro tipos UML solicitados y 22 fichas principales de casos de uso.
 
 | Fuente e imagen | Contenido |
 | --- | --- |
 | [01_entidad_relacion.puml](01_entidad_relacion.puml) · [SVG](01_entidad_relacion.svg) | 19 tablas, 120 columnas, claves y cardinalidades; tipo/entorno opcionales |
-| [02_casos_uso.puml](02_casos_uso.puml) · [SVG](02_casos_uso.svg) | Visitante, cliente, propietario y administrador; CU01–CU20, include y extend |
+| [02_casos_uso.puml](02_casos_uso.puml) · [SVG](02_casos_uso.svg) | Visitante, cliente, propietario y administrador; CU01–CU22, include y extend |
 | [03_clases_modelo_usuarios.puml](03_clases_modelo_usuarios.puml) · [SVG](03_clases_modelo_usuarios.svg) | Identidad, perfiles por composición, interfaces y ubicación |
 | [04_clases_modelo_reservas_finanzas.puml](04_clases_modelo_reservas_finanzas.puml) · [SVG](04_clases_modelo_reservas_finanzas.svg) | Inmueble, contrato y calendario; conserva el nombre anterior del archivo |
 | [05_clases_servlet_service.puml](05_clases_servlet_service.puml) · [SVG](05_clases_servlet_service.svg) | Entradas HTTP, Web, servicios y tarea periódica |

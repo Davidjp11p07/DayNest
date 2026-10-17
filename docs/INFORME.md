@@ -17,7 +17,7 @@ El alcance financiero es académico y local: aprobar un cobro, devolverlo o ejec
 
 ## 2. Requisitos y trazabilidad
 
-Los identificadores RF se asignan en este informe para organizar la trazabilidad; no son números publicados por el profesor. RF08 y RF10 son ampliaciones implementadas que acompañan el alcance mínimo.
+Los identificadores RF se asignan en este informe para organizar la trazabilidad; no son números publicados por el profesor. RF08, RF10 y RF11 son ampliaciones implementadas que acompañan el alcance mínimo.
 
 | ID | Comportamiento verificable | Casos de uso |
 | --- | --- | --- |
@@ -27,10 +27,11 @@ Los identificadores RF se asignan en este informe para organizar la trazabilidad
 | RF04 | Crear, consultar y cancelar reservas con validación de fechas/capacidad | CU06–CU07, CU09, CU17 |
 | RF05 | Pago, saldo, historial de movimientos y devolución simulados | CU07–CU09, CU17 |
 | RF06 | Liquidar automaticamente la estancia finalizada con pago completo, comision historica y cuenta del propietario pactado; conservar auditoria y reintentos. | CU15, CU19 |
-| RF07 | Interfaz web para los distintos usuarios | CU01–CU20 |
+| RF07 | Interfaz web para los distintos usuarios | CU01–CU22 |
 | RF08 | Bloquear y liberar fechas del inmueble propio | CU13–CU14 |
 | RF09 | Supervisión administrativa de rentas, reservas, pagos y giros | CU16–CU19 |
 | RF10 | Consulta separada del historial previo en solo lectura | CU20 |
+| RF11 | Comisiones acumuladas e ingresos por inmueble, moneda y arriendo, con historial paginado | CU21–CU22 |
 
 Además del comportamiento funcional, se protege la salida JSP mediante JSTL, las operaciones de escritura mediante token CSRF, el acceso mediante sesión y rol, y la persistencia mediante consultas parametrizadas y transacciones. No se atribuye a estos controles una certificación formal de seguridad.
 
@@ -53,7 +54,7 @@ La arquitectura tiene detalles concretos: CatalogoService consulta CiudadDao; Bl
 
 ## 4. Modelo de datos y reglas
 
-El destino de schema.sql contiene diez tablas del profesor (propietarios, inmuebles, ciudades, paises, banco, clientes, asocia, relaciona, vincula y renta) y nueve extensiones tecnicas. La nomenclatura ya esta aplicada; la extension financiera esta aplicada en la base operativa. Cliente y propietario son entidades separadas con acceso tecnico compartido. Las vistas preservan contratos sin duplicar datos. El esquema completo esta en esquema_relacional.md.
+El destino de sql/instalacion/schema.sql contiene diez tablas del profesor (propietarios, inmuebles, ciudades, paises, banco, clientes, asocia, relaciona, vincula y renta) y nueve extensiones tecnicas. La nomenclatura ya esta aplicada; la extension financiera esta aplicada en la base operativa. Cliente y propietario son entidades separadas con acceso tecnico compartido. Las vistas preservan contratos sin duplicar datos. El esquema completo esta en esquema_relacional.md.
 
 Usuario es el acceso tecnico compartido; clientes y propietarios tienen entidades y cuentas bancarias separadas. Ocupacion pertenece exactamente a renta o bloqueo. El calendario usa [inicio, fin): la salida no ocupa noches. La exclusion GiST impide cruces de ocupaciones activas.
 
@@ -74,7 +75,7 @@ El catálogo precargado contempla 32 capitales colombianas y Cartagena, Murcia, 
 
 ## 5. Diagramas de diseño
 
-Las imágenes siguientes se generan desde las fuentes PlantUML del proyecto. Los métodos con (...) representan firmas abreviadas; no significa que exista un parámetro llamado puntos suspensivos. Se muestran operaciones relevantes, no todos los accesores ni todas las clases auxiliares. Las fichas CU01–CU20 describen los objetivos del usuario; las secuencias muestran su realización técnica.
+Las imágenes siguientes se generan desde las fuentes PlantUML del proyecto. Los métodos con (...) representan firmas abreviadas; no significa que exista un parámetro llamado puntos suspensivos. Se muestran operaciones relevantes, no todos los accesores ni todas las clases auxiliares. Las fichas CU01–CU22 describen los objetivos del usuario; las secuencias muestran su realización técnica.
 
 ### 5.1 Casos de uso
 
@@ -148,7 +149,7 @@ La actividad sigue el flujo de simulación implementado. El soporte de estados f
 
 ### 5.5 Modelo lógico del profesor y soporte técnico
 
-Se presenta como apoyo a los diagramas de diseño solicitados, con todas las columnas, claves, cardinalidades y restricciones principales del schema.sql vigente.
+Se presenta como apoyo a los diagramas de diseño solicitados, con todas las columnas, claves, cardinalidades y restricciones principales del sql/instalacion/schema.sql vigente.
 
 ![Figura 15. Modelo lógico PostgreSQL](diagramas/01_entidad_relacion.svg)
 
@@ -374,11 +375,11 @@ Una precondición indica cuándo el caso puede terminar con éxito; el sistema v
 | Paso | Acción del usuario | Respuesta del sistema |
 | --- | --- | --- |
 | 1 | Abre pagar para su reserva. | Recupera reserva y muestra total pactado, pagado y saldo. |
-| 2 | Elige método, referencia opcional y confirma. | Bloquea reserva y valida propietario de la cuenta, estado, vencimiento, entrada y disponibilidad. |
+| 2 | Elige cuenta registrada u otra solo para este pago, indica referencia opcional y confirma. | Bloquea reserva y valida pertenencia, estado, vencimiento, entrada, disponibilidad y cuenta bancaria. |
 | 3 | Espera el resultado. | Recalcula saldo = total - neto aprobado, inserta COBRO con clave idempotente y lo aprueba en simulación. |
 | 4 | Revisa su reserva. | Marca CONFIRMADA, confirma transacción y muestra aviso. |
 
-**Alternativas y errores:** 2a. Reserva ajena, vencida, confirmada previamente o entrada alcanzada: rechazar. 3a. Referencia duplicada, importe inválido o sobrecobro: rollback. La segunda petición no cobra de nuevo una reserva ya confirmada. El método es una selección de UI, sin columna persistida. No se contacta una pasarela.
+**Alternativas y errores:** 2a. Reserva ajena, vencida, confirmada previamente o entrada alcanzada: rechazar. 3a. Referencia duplicada, banco inexistente, cuenta inválida o sobrecobro: rollback. La segunda petición no cobra de nuevo una reserva ya confirmada. TRANSFERENCIA, banco, número, tipo y uso REGISTRADA u OCASIONAL se conservan en cuenta_bancaria_pactada (JSONB). La cuenta ocasional no cambia las predeterminadas. Los movimientos antiguos sin método conservan ese dato como desconocido. No se contacta una pasarela.
 
 **Relaciones:** Incluye Calcular saldo. CU07 permite consultar después los movimientos.
 
@@ -715,7 +716,7 @@ Los comportamientos auxiliares no son tres pantallas adicionales ni métodos inv
 
 ## 7. Verificación y demostración
 
-El comprobador local compara nombres de clases, interfaces, atributos y métodos, además de las 19 tablas y 120 columnas con PK/FK/UQ. PlantUML valida sintaxis y genera las imágenes localmente. Este control no sustituye una revisión semántica: las relaciones, condiciones, rutas y secuencias se contrastaron con servlets, servicios, DAO y schema.sql durante la actualización.
+El comprobador local compara nombres de clases, interfaces, atributos y métodos, además de las 19 tablas y 120 columnas con PK/FK/UQ. PlantUML valida sintaxis y genera las imágenes localmente. Este control no sustituye una revisión semántica: las relaciones, condiciones, rutas y secuencias se contrastaron con servlets, servicios, DAO y sql/instalacion/schema.sql durante la actualización.
 
 Las pruebas funcionales y de persistencia existentes cubren fechas y capacidad, bloqueo y concurrencia, intervalos adyacentes, términos históricos, pagos, devolución, idempotencia, expiración y giro neto. El registro previo de la implementación informa 65 pruebas satisfactorias; corresponde a aquella ejecución, no a una nueva ejecución causada por este informe. La presente actualización es documental y no modifica código Java ni datos operativos.
 
@@ -744,17 +745,47 @@ Antes de entregar, completar nombres del grupo, asignatura, institución y docen
 - Álvaro E. Ortiz Dávila, material docente «3 - Diagrama de clases.pdf», 22 páginas: notación de atributos, operaciones, interfaces, relaciones y multiplicidades. Archivo de consulta externo al proyecto.
 - Álvaro E. Ortiz Dávila, material docente «4 - Casos de Uso.pdf», 31 páginas: actores, relaciones include/extend y fichas ampliadas, especialmente páginas 12–13 y 27. Archivo de consulta externo al proyecto.
 - Código fuente local: src/main/java/co/edu/rentainmuebles (model, servlet, service, dao, filter, config); src/main/webapp/WEB-INF/views; schema.sql.
-- Documentación del proyecto: MODELO_DEFINITIVO.md, ADAPTACION_SVG.md, FILTROS_INMUEBLES.md, GUION_DEMO.md y diseno/CREDITOS_IMAGENES.md.
+- Documentación del proyecto: MODELO_DEFINITIVO.md, ADAPTACION_SVG.md, GUION_DEMO.md y diseno/CREDITOS_IMAGENES.md.
 - Herramienta de diagramación: PlantUML 1.2025.10, JAR obtenido de Maven Central; renderizado local con Smetana y Graphviz integrado en Windows para casos de uso. Su ubicación y checksum se documentan en diagramas/README.md.
 
 ## Datos bancarios y residencia
 
 Desde Mi cuenta → Mis datos y cuentas, el cliente y el propietario guardan banco, número y tipo de cuenta en sus relaciones independientes. La casilla de copia guarda los mismos datos en ambos perfiles de forma atómica; no activa perfiles ni modifica cuentas de otras personas. La residencia del cliente se selecciona por ciudad. La administración gestiona bancos y países del catálogo. Los datos desconocidos de registros migrados aparecen pendientes, sin inventar cuentas ni ubicaciones.
 
-El precio por noche pertenece a ASOCIA. El inmueble incluye área en m² y habitaciones, editables por su propietario, sin alterar las tarifas pactadas de rentas previas. Los pagos y giros nuevos conservan la cuenta bancaria usada si estaba configurada; posteriores cambios no reescriben ese historial. Los pagos siguen simulados.
+El precio por noche pertenece a ASOCIA. El inmueble incluye área en m² y habitaciones, editables por su propietario, sin alterar las tarifas pactadas de rentas previas. Los cobros nuevos conservan la cuenta bancaria registrada u ocasional utilizada. Los giros conservan la cuenta del propietario al ejecutarse; posteriores cambios de perfil no reescriben ese historial. La cuenta ocasional no reemplaza la predeterminada y su eventual devolución conserva la cuenta del cobro original. Los pagos siguen simulados.
 
 ![Cuentas y entidades independientes](diagramas/17_clases_cuentas.svg)
 
 ## Extension financiera y estado de activacion
 
 El informe tecnico GIROS_AUTOMATICOS.md detalla configuracion versionada, tasa historica, origen SISTEMA, cuenta al ejecutar, auditoria, pruebas y plan de migracion. La nomenclatura esta aplicada. La extension financiera se probo en copias aisladas y se aplico con respaldo el 17 de octubre de 2026; conserva 80 inmuebles y el historial original.
+
+## Comisiones e ingresos por inmueble
+
+Las nuevas consultas financieras usan `IngresosServlet` e `IngresosService`, sin tablas ni columnas adicionales. Se agregan los pagos por renta antes de unirlos con un giro vigente; se evitan duplicados por múltiples cobros, devoluciones o intentos fallidos. Las comisiones y netos liquidados provienen de giros EJECUTADOS, usando sus importes históricos. Los pendientes son estimaciones sobre reservas pagadas por completo, confirmadas o finalizadas, con tasa fijada, sin devoluciones aprobadas ni movimientos pendientes y aún no liquidadas.
+
+Cada inmueble aparece una vez por moneda, incluidos los que no tienen ingresos. Una consulta por propietario conserva el beneficiario pactado en la renta, aunque cambie el dueño actual del inmueble. Los resultados se filtran en SQL por usuario autorizado e inmueble. Los totales y el detalle se leen en una transacción de solo lectura con una misma instantánea; el historial tiene páginas de 20 filas y los acumulados abarcan todo el filtro.
+
+### CU21 — Consultar comisiones por inmueble y arriendo
+
+**Actor:** Administrador activo. **Propósito:** conocer las comisiones de DayNest liquidadas y las pendientes estimadas. **Precondición:** sesión y permiso administrativo. **Poscondición:** consulta sin alterar operaciones. **Pantalla:** `/admin/ingresos`, accesible desde Comisiones e ingresos, panel y Giros.
+
+| Acción del administrador | Respuesta del sistema |
+|---|---|
+| Abre el apartado. | Presenta acumulados por moneda y resumen por inmueble. |
+| Selecciona un inmueble. | Filtra los importes y el historial por ese inmueble. |
+| Consulta cada arriendo o cambia de página. | Muestra cliente, propietario, fechas, estado, pago neto, tasa, comisión, neto al propietario y situación del giro; conserva los acumulados completos del filtro. |
+
+**Alternativas:** lista vacía informada; identificador inválido o página no numérica rechazados; las páginas fuera de rango se ajustan; usuario sin permiso rechazado. Una comisión estimada no se muestra como ingreso liquidado. COP y EUR no se suman entre sí. No representa un saldo bancario o billetera.
+
+### CU22 — Consultar ingresos propios por inmueble y arriendo
+
+**Actor:** Propietario activo. **Propósito:** conocer cuánto se liquidó a su favor y cuánto está pendiente por cada propiedad. **Precondición:** sesión y perfil propietario. **Poscondición:** consulta restringida al propietario, sin alterar operaciones. **Pantalla:** `/propietario/ingresos`, accesible desde Mis ingresos y Mis giros.
+
+| Acción del propietario | Respuesta del sistema |
+|---|---|
+| Abre Mis ingresos. | Presenta netos liquidados y pendientes estimados, separados por moneda, y comisiones correspondientes. |
+| Selecciona una propiedad. | Muestra sus arriendos y el neto individual de cada uno, sin exponer operaciones de otro propietario. |
+| Consulta el historial o vuelve a todos los inmuebles. | Conserva precios y tasas históricos; incluye inmuebles sin rentas y operaciones donde fue beneficiario pactado. |
+
+**Alternativas:** filtro sobre un inmueble ajeno no devuelve sus ingresos; perfil inactivo o no autorizado rechazado. Reservas canceladas y devueltas no generan ganancias; pagos incompletos no se presentan como ganancias pendientes. Los giros fallidos no suman ingresos liquidados.

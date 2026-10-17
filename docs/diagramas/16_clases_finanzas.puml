@@ -17,6 +17,12 @@ abstract class MovimientoFinanciero {
 }
 class Pago {
   -metodo : MetodoPago
+  -cuentaOcasional : CuentaBancaria
+  +getMetodoRegistrado() : String
+  +getBancoPago() : String
+  +getNumeroCuentaPago() : String
+  +getTipoCuentaPago() : String
+  +getUsoCuenta() : String
   -estado : EstadoPago
   -clase : String
   -cobroOrigen : Long
@@ -62,7 +68,9 @@ MovimientoFinanciero "0..*" --> "1" Reserva
 Giro "0..*" --> "1" Propietario : propietario pactado
 note bottom of Pago
   Adaptador de movimiento_pago: COBRO o DEVOLUCION.
-  Moneda derivada de la reserva; método de UI no persistido.
+  Moneda derivada de la reserva; TRANSFERENCIA en snapshot JSONB.
+  Cuenta registrada u ocasional; numero enmascarado en las vistas.
+  Metodo antiguo desconocido: no se infiere.
 end note
 note bottom of Giro
   Beneficiario y moneda derivados del contrato histórico.

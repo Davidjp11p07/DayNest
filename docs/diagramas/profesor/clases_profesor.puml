@@ -1,0 +1,122 @@
+@startuml
+!include ../estilo.iuml
+title Clases de análisis — enunciado y ER del profesor
+left to right direction
+skinparam linetype polyline
+package "Núcleo del ER y aclaración de cuentas" {
+ class Propietario {
+  - id_p : Integer
+  - nom_p : String
+  - tel_p : String
+  - emai_p : String
+  + actualizarDatos(datos)
+ }
+ class Cliente {
+  - id_cl : Integer
+  - nom_cl : String
+  - tel_cl : String
+  - emai_cl : String
+  + actualizarDatos(datos)
+ }
+ class Inmueble {
+  - id_i : Integer
+  - dir_i : String
+  - area : Decimal
+  - n_hab : Integer
+  - capacd : Integer
+  + actualizarCaracteristicas(datos)
+ }
+ class Ciudad {
+  - id_cd : Integer
+  - nom_cd : String
+ }
+ class Pais {
+  - id_ps : Integer
+  - nom_ps : String
+ }
+ class Banco {
+  - id_b : Integer
+  - nom_b : String
+ }
+ class Asocia <<clase de asociación>> {
+  - prec_nch : Decimal
+  + cambiarPrecio(precio : Decimal)
+ }
+ class Relaciona <<clase de asociación>> {
+  - num_cta : String
+  - tipo_cta : String
+  + actualizarCuenta(numero : String, tipo : String)
+ }
+ class Vincula <<clase de asociación>> {
+  - num_cta : String
+  - tipo_cta : String
+  + actualizarCuenta(numero : String, tipo : String)
+ }
+ class Renta <<realización de renta>> {
+  - fch_e : Date
+  - fch_s : Date
+  - estado : String {derivado del enunciado}
+  + definirPeriodo(entrada : Date, salida : Date)
+  + cambiarEstado(nuevoEstado : String)
+ }
+ Propietario "1" -- "0..*" Inmueble : asocia
+ (Propietario, Inmueble) .. Asocia
+ Propietario "0..*" -- "1" Banco : relaciona
+ (Propietario, Banco) .. Relaciona
+ Cliente "0..*" -- "1" Banco : vincula
+ (Cliente, Banco) .. Vincula
+ Cliente "1" -- "0..*" Renta : solicita
+ Inmueble "1" -- "0..*" Renta : corresponde a
+ Inmueble "0..*" -- "1" Ciudad : ubica
+ Cliente "0..*" -- "1" Ciudad : reside
+ Ciudad "0..*" -- "1" Pais : pertenece
+ Banco "0..*" -- "1" Pais : relaciona
+}
+package "Conceptos de análisis exigidos por el texto" {
+ class Pago <<análisis>> {
+  - monto : Decimal
+  - fecha : Date
+  - estado : String
+  + registrar(monto : Decimal, fecha : Date)
+ }
+ class Giro <<análisis>> {
+  - monto : Decimal
+  - fecha : Date
+  - estado : String
+  + registrar(monto : Decimal, fecha : Date)
+ }
+ class GestionAlquileres <<control>> {
+  + registrarCliente(datos)
+  + registrarPropietario(datos)
+  + activarOtroPerfil(persona, perfil)
+  + copiarCuentaEntrePerfiles(persona)
+  + buscarInmuebles(criterios)
+  + registrarReserva(cliente, inmueble, entrada, salida)
+  + gestionarReservas(criterios)
+  + gestionarRenta(renta, estado)
+  + registrarPago(renta, monto)
+  + gestionarPagos(criterios)
+  + registrarGiro(renta, propietario, monto)
+ }
+ Renta "1" -- "0..*" Pago : recibe
+ Renta "1" -- "0..*" Giro : origina
+ Giro "0..*" -- "1" Propietario : beneficiario
+ GestionAlquileres ..> Renta : coordina
+ GestionAlquileres ..> Pago
+ GestionAlquileres ..> Giro
+}
+note bottom of Renta
+ La relación renta se expresa como un objeto por ocurrencia.
+ Permite repetir cliente e inmueble en períodos distintos.
+ {fch_s > fch_e}; sin doble reserva del mismo período.
+ No define una nueva tabla ni una clave técnica.
+end note
+legend bottom
+ Seis entidades originales; sin herencia de Usuario.
+ Un banco por perfil completo; cuentas independientes y copia voluntaria de los tres datos.
+ Una misma persona puede desempeñar ambos roles; los identificadores de perfil son distintos conceptos.
+ Pago y Giro proceden del texto; sus atributos y multiplicidades son propuestas de análisis.
+ Administración es un actor de casos de uso, no una entidad bancaria del ER.
+ No se especifican porcentajes, automatismos, tecnologías internas ni nuevas tablas PostgreSQL.
+endlegend
+@enduml

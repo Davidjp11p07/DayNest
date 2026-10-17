@@ -1,0 +1,60 @@
+@startuml
+!include ../estilo.iuml
+title Casos de uso — enunciado y ER del profesor
+left to right direction
+actor Cliente
+actor Propietario
+actor "Administración" as Admin
+rectangle "Aplicación web de renta de inmuebles por días" {
+ package "Personas y cuentas" {
+  usecase "CU01 Registrar cliente" as C01
+  usecase "CU02 Registrar propietario" as C02
+  usecase "CU03 Activar otro perfil" as C03
+  usecase "CU04 Actualizar datos\ny residencia del cliente" as C04
+  usecase "CU05 Gestionar cuenta\nbancaria por perfil" as C05
+  usecase "CU06 Copiar cuenta\na ambos perfiles" as C06
+ }
+ package "Inmuebles y reservaciones" {
+  usecase "CU07 Ofrecer o actualizar\ninmueble y tarifa" as C07
+  usecase "CU08 Buscar y consultar\ninmuebles" as C08
+  usecase "CU09 Reservar inmueble" as C09
+  usecase "CU10 Gestionar\nreservaciones" as C10
+  usecase "CU15 Consultar\nrentas propias" as C15
+  usecase "CU16 Comprobar período\ny disponibilidad" as C16
+ }
+ package "Rentas, pagos y giros" {
+  usecase "CU11 Registrar pago\nde una renta" as C11
+  usecase "CU12 Gestionar pagos\nde clientes" as C12
+  usecase "CU13 Gestionar rentas" as C13
+  usecase "CU14 Gestionar giros\na propietarios" as C14
+  usecase "CU17 Comprobar pago,\nbeneficiario y cuenta" as C17
+ }
+}
+Cliente -- C01
+Propietario -- C02
+Cliente -- C03
+Propietario -- C03
+Cliente -- C04
+Propietario -- C04
+Cliente -- C05
+Propietario -- C05
+Propietario -- C07
+Cliente -- C08
+Cliente -- C09
+Cliente -- C11
+Cliente -- C15
+Propietario -- C15
+C06 ..> C05 : <<extend>>\n[ambos perfiles y copia elegida]
+C09 ..> C16 : <<include>>
+C14 ..> C17 : <<include>>
+Admin -- C10
+Admin -- C12
+Admin -- C13
+Admin -- C14
+legend bottom
+ Fuentes: enunciado del proyecto, ER del profesor y aclaraciones del usuario.
+ Cliente y propietario son roles independientes; una persona puede desempeñar ambos.
+ CU05 guarda banco, número y tipo de cuenta; CU06 copia los tres voluntariamente.
+ Bancos, ciudades y países son datos del dominio; no se presume integración bancaria externa.
+endlegend
+@enduml

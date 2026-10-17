@@ -84,7 +84,7 @@ foreach ($diagrama in $diagramas) {
         }
     }
 }
-$schema = [IO.File]::ReadAllText((Join-Path $raiz 'schema.sql'))
+$schema = [IO.File]::ReadAllText((Join-Path $raiz 'sql/instalacion/schema.sql'))
 $er = [IO.File]::ReadAllText((Join-Path $PSScriptRoot '01_entidad_relacion.puml'))
 $tablas = [regex]::Matches($schema, '(?s)CREATE TABLE (?:IF NOT EXISTS\s+)?(\w+)\s*\((.*?)\n\);|CREATE TABLE (?:IF NOT EXISTS\s+)?(cliente|propietario)\s*\((.*?)\);')
 # Analizar tabla por límites de CREATE TABLE; separa columnas de CHECK/EXCLUDE.

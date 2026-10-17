@@ -53,6 +53,7 @@ interface PagoService {
   +resumen(...)
 }
 class PagoServiceImpl {
+  +registrarTransferencia(...) : Pago
   +registrar(...) : Pago
   +resumen(...) : ResumenReserva
   +listarPropios(...) : List<Pago>

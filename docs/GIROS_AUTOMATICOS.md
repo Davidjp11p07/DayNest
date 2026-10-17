@@ -6,7 +6,7 @@ La nomenclatura y la extension financiera estan aplicadas en la base operativa d
 
 ## Comportamiento
 
-El cliente vincula su banco, número y tipo de cuenta y paga. DayNest registra el cobro aprobado, confirma la reserva y conserva el importe durante la estancia. El primer cobro aprobado fija la tasa histórica de esa renta. Administración puede cambiar el porcentaje en **Giros**, sin reiniciar y sin cambiar tasas ya fijadas.
+El cliente paga por transferencia simulada usando su cuenta registrada o indicando banco, número y tipo de una cuenta ocasional. La ocasional se conserva solo en el pago, sin cambiar las cuentas predeterminadas de los perfiles. DayNest registra el cobro aprobado, confirma la reserva y conserva el importe durante la estancia. El primer cobro aprobado fija la tasa histórica de esa renta. Administración puede cambiar el porcentaje en **Giros**, sin reiniciar y sin cambiar tasas ya fijadas.
 
 El ciclo existente expira pendientes y finaliza estancias. Después procesa cada liquidación en su propia transacción. Se ejecuta cada minuto y al arrancar, de modo que recupera las estancias terminadas durante una interrupción. Java y PostgreSQL usan la zona horaria configurada en negocio.properties; la fecha de salida deja de ocupar noches.
 
@@ -43,6 +43,12 @@ El ensayo de migración restauró el respaldo `.tools/respaldos/antes-modelo-202
 ## Activacion completada
 
 Jetty se detuvo antes de crear el respaldo `.tools/respaldos/antes-modelo-20261017-004616.dump`. Se aplico la migracion transaccional y se ejecuto de nuevo para comprobar idempotencia. Las huellas de las columnas originales de las 17 tablas y los 80 inmuebles se conservaron. Jetty se reinicio; se comprobaron acceso administrativo, nueve rutas HTTP y tasa inicial del 30 %.
+
+## Consulta de comisiones e ingresos
+
+El apartado **Administración → Comisiones e ingresos** suma únicamente las comisiones de giros EJECUTADOS como liquidadas. Muestra aparte las estimaciones pendientes de reservas CONFIRMADAS/FINALIZADAS pagadas por completo, con tasa histórica, sin devoluciones aprobadas ni movimientos pendientes y aún sin giro ejecutado. Una incidencia de liquidación no convierte ese estimado en una comisión realizada.
+
+El propietario dispone de **Mis ingresos**, con el neto liquidado y pendiente por inmueble y moneda y el historial de cada arriendo. Se incluyen inmuebles sin ingresos y rentas cuyo propietario pactado es el usuario, aunque después cambie el propietario actual. El filtro y la autorización se aplican en SQL. El historial se pagina en el servidor, pero los acumulados incluyen todo el filtro. Las consultas agregan los movimientos antes de unirlos al giro para no multiplicar importes. No se crea un saldo de billetera ni se añaden tablas o columnas.
 
 ## Comandos
 

@@ -17,6 +17,6 @@ Fuente: Proyecto - Airbnb.pdf suministrado por el usuario. modelo_er_daynest.svg
 
 Las cardinalidades 1:N de ciudad-pais, inmueble-ciudad, cliente-ciudad y banco-pais se materializan mediante FK. La cuenta actual es unica por perfil; se permite que ambos perfiles usen el mismo numero y banco.
 
-El modelo logico distingue las diez tablas del profesor de nueve extensiones tecnicas en la version financiera actual. Las vistas no se cuentan como tablas. Los datos antiguos conservan sus IDs y valores; los campos desconocidos quedan pendientes. datos-demo-profesor.sql es opcional y separado: solo completa datos ficticios de usuarios demo.
+El modelo logico distingue las diez tablas del profesor de nueve extensiones tecnicas en la version financiera actual. Las vistas no se cuentan como tablas. Los datos antiguos conservan sus IDs y valores; los campos desconocidos quedan pendientes. sql/demostracion/datos-demo-profesor.sql es opcional y separado: solo completa datos ficticios de usuarios demo.
 
-La nomenclatura ya esta aplicada. La automatizacion financiera aun requiere autorizacion para aplicar su migracion operativa. Los detalles completos estan en esquema_relacional.md y GIROS_AUTOMATICOS.md.
+La nomenclatura y la automatizacion financiera ya estan aplicadas en la base operativa. Los detalles completos estan en esquema_relacional.md y GIROS_AUTOMATICOS.md.
