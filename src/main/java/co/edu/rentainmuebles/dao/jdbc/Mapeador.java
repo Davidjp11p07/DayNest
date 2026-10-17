@@ -21,7 +21,7 @@ final class Mapeador {
                 .stream().findFirst().orElseThrow(() -> new DaoException("Usuario relacionado inexistente."));
     }
     static Inmueble inmueble(Connection c, long id) throws SQLException {
-        return new InmuebleDaoJdbc().consultar(c, "SELECT * FROM inmueble WHERE id_inmueble = ?", s -> s.setLong(1, id))
+        return new InmuebleDaoJdbc().consultar(c, "SELECT * FROM inmueble_operativo WHERE id_inmueble = ?", s -> s.setLong(1, id))
                 .stream().findFirst().orElseThrow(() -> new DaoException("Inmueble relacionado inexistente."));
     }
     static Reserva reserva(Connection c, long id) throws SQLException {

@@ -29,6 +29,7 @@
     </c:when>
     <c:otherwise><p>No tienes un perfil cliente o propietario desde el que activar el complementario.</p></c:otherwise>
   </c:choose>
+  <p><a href="${fn:escapeXml(pageContext.request.contextPath)}/cuenta/datos">Configurar datos y cuentas bancarias</a></p>
   <p><a href="${fn:escapeXml(pageContext.request.contextPath)}/inicio">Volver al inicio</a></p>
 </section>
 <%@ include file="../layout/pie.jspf" %>

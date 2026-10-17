@@ -11,6 +11,7 @@ import java.util.Properties;
 public final class ConexionBD {
     private static HikariDataSource pool;
     private static String esquemaBase;
+    private static String zonaHoraria;
     private ConexionBD() { }
 
     private static synchronized HikariDataSource fuente() {
@@ -29,6 +30,9 @@ public final class ConexionBD {
             config.setPoolName("DayNest");
             config.addDataSourceProperty("tcpKeepAlive","true");
             esquemaBase = p.getProperty("db.esquema","public");
+            Properties negocio=new Properties();
+            try(InputStream n=ConexionBD.class.getClassLoader().getResourceAsStream("negocio.properties")) {if(n==null)throw new IOException("Falta negocio.properties");negocio.load(n);}
+            zonaHoraria=java.time.ZoneId.of(negocio.getProperty("negocio.zonaHoraria")).getId();
             pool = new HikariDataSource(config);
             return pool;
         } catch (IOException | IllegalArgumentException e) {
@@ -44,7 +48,7 @@ public final class ConexionBD {
             Connection c = fuente.getConnection();
             try (Statement s = c.createStatement()) {
                 s.execute("SET search_path TO \""+esquema+"\",public");
-                s.execute("SET TIME ZONE 'America/Bogota'");
+                try(PreparedStatement z=c.prepareStatement("SELECT set_config('TimeZone',?,false)")){z.setString(1,zonaHoraria);z.executeQuery().close();}
                 return c;
             } catch (SQLException | RuntimeException e) {
                 try { c.close(); } catch (SQLException cierre) { e.addSuppressed(cierre); }

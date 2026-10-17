@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ComisionIntegracionTest extends SoportePostgres {
  @Test void comisionPersistidaHistoricaEInmutable() throws Exception {
+  new ComisionService().cambiar(admin.getId(),new BigDecimal("10"));
   Reserva r=reservaPagada();alFinalizar(r);
   Servicios diez=new Servicios(unidad,RELOJ,new PoliticaComisionPorcentaje(new BigDecimal("0.1000")));
   Giro g=diez.giros.generar(admin.getId(),r.getId(),"COMISION-TEST");
@@ -26,15 +27,6 @@ class ComisionIntegracionTest extends SoportePostgres {
  }
  @Test void configuracionRealSeLee() {
   assertNotNull(Servicios.crear());
- }
- @Test void migracionReejecutableConservaGiros() throws Exception {
-  Reserva r=reservaPagada();alFinalizar(r);Giro g=servicios.giros.generar(admin.getId(),r.getId(),null);
-  try(Connection c=ConexionBD.abrir();Statement s=c.createStatement()) {
-   s.execute("ALTER TABLE giro DROP COLUMN porcentaje_comision, DROP COLUMN monto_comision");
-   s.execute(Files.readString(Path.of("migrar-comision.sql")));
-   s.execute(Files.readString(Path.of("migrar-comision.sql")));
-  }
-  assertEquals(g.getMonto(),giros.buscarPorId(g.getId()).orElseThrow().getMonto());
  }
  @Test void consultaPropietarioUsaBeneficiarioHistorico() {
   Reserva r=reservaFutura();

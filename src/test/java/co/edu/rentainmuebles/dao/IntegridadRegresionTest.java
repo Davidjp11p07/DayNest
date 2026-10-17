@@ -40,9 +40,13 @@ class IntegridadRegresionTest extends SoportePostgres {
   assertEquals(EstadoReserva.EXPIRADA,reservas.buscarPorId(r.getId()).orElseThrow().getEstado());
   assertEquals(0,pagos.totalPagado(r.getId()).signum());
  }
- @Test void migracionIntegridadReejecutable()throws Exception {
-  Reserva r=reservaPagada();alFinalizar(r);Giro g=servicios.giros.generar(admin.getId(),r.getId(),null);
-  try(Connection c=ConexionBD.abrir();Statement t=c.createStatement()){t.execute(Files.readString(Path.of("corregir-integridad.sql")));t.execute(Files.readString(Path.of("corregir-integridad.sql")));}
-  assertEquals(g.getMonto(),giros.buscarPorId(g.getId()).orElseThrow().getMonto());
+ @Test void scriptsAnterioresNoReescribenModeloProfesor()throws Exception {
+  try(Connection c=ConexionBD.abrir();Statement t=c.createStatement()) {
+   c.setAutoCommit(false);
+   for(String archivo:java.util.List.of("corregir-integridad.sql","revertir-svg.sql","migrar-svg.sql")) {
+    String script=Files.readString(Path.of(archivo)).replaceAll("(?im)^\\s*(BEGIN|COMMIT);\\s*$", "");
+    assertThrows(SQLException.class,()->t.execute(script));c.rollback();
+   }
+  }
  }
 }

@@ -11,6 +11,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MigracionSvgTest extends SoportePostgres {
+    @Override protected String esquemaSql(){return "src/test/resources/schema-pre-profesor.sql";}
     private static void script(Connection c,String ruta) throws Exception {
         String sql=Files.readString(Path.of(ruta)).replaceAll("(?im)^\\s*(BEGIN|COMMIT);\\s*$","");
         c.setAutoCommit(false);
@@ -38,7 +39,7 @@ class MigracionSvgTest extends SoportePostgres {
             try(Statement s=c.createStatement()) {
                 s.execute("CREATE SCHEMA "+esquema);s.execute("SET search_path TO "+esquema+",public");
                 script(c,"src/test/resources/schema-anterior-svg.sql");
-                MigrarModeloSvg.migrar(c);co.edu.rentainmuebles.verification.MigrarFiltros.migrar(c);assertEquals(esperado,estructura(c));
+                MigrarModeloSvg.migrar(c);co.edu.rentainmuebles.verification.MigrarFiltros.migrar(c);script(c,"src/test/resources/compatibilidad-pre-profesor.sql");assertEquals(esperado,estructura(c));
             } finally {
                 try(Statement s=c.createStatement()){s.execute("SET search_path TO public");s.execute("DROP SCHEMA "+esquema+" CASCADE");}
             }
@@ -87,7 +88,7 @@ class MigracionSvgTest extends SoportePostgres {
     }
     @Test void monedaHistoricaNoDependeDeTarifaMonedaActual() throws Exception {
         Reserva r=reservaPagada();
-        try(Connection c=ConexionBD.abrir();Statement s=c.createStatement()){s.execute("UPDATE inmueble SET moneda='EUR',tarifa_noche=95 WHERE id_inmueble="+inmueble.getId());}
+        try(Connection c=ConexionBD.abrir();Statement s=c.createStatement()){s.execute("UPDATE inmueble_operativo SET moneda='EUR',tarifa_noche=95 WHERE id_inmueble="+inmueble.getId());}
         assertEquals("COP",pagos.listarPorReserva(r.getId()).get(0).getMoneda());
         assertEquals(r.getPrecioPorNoche(),reservas.buscarPorId(r.getId()).orElseThrow().getPrecioPorNoche());
     }

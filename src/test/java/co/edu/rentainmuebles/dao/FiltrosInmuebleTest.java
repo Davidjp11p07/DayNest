@@ -73,16 +73,4 @@ class FiltrosInmuebleTest extends SoportePostgres {
   buscar("CASA",true,true);buscar("CABAÑA",true,null);
   var historica=reservas.buscarPorId(r.getId()).orElseThrow();assertEquals(total,historica.getTotal());assertEquals(cantidadPagos,pagos.listarPorReserva(r.getId()).size());assertEquals(monto,giros.buscarPorId(g.getId()).orElseThrow().getMonto());
  }
- @Test void migracionPreservaFilasFinancierasYEsReejecutable()throws Exception{
-  var r=reservaPagada();alFinalizar(r);servicios.giros.generar(admin.getId(),r.getId(),"MIGRA-FILTROS");
-  try(Connection c=ConexionBD.abrir();Statement s=c.createStatement()){
-   // Retirar solo los atributos nuevos en este esquema UUID para reconstruir el DDL anterior.
-   s.execute("UPDATE inmueble SET tipo='CASA' WHERE tipo IS NULL");
-   s.execute("ALTER TABLE inmueble DROP COLUMN es_rural,DROP COLUMN cerca_mar");
-   s.execute("ALTER TABLE inmueble ALTER COLUMN tipo SET NOT NULL");
-   var antes=MigrarFiltros.huellas(c);MigrarFiltros.migrar(c);MigrarFiltros.migrar(c);assertEquals(antes,MigrarFiltros.huellas(c));
-   try(ResultSet v=s.executeQuery("SELECT es_rural,cerca_mar FROM inmueble")){assertTrue(v.next());assertNull(v.getObject(1));assertNull(v.getObject(2));}
-  }
-  assertEquals(EstadoGiro.EJECUTADO,giros.listar().get(0).getEstado());
- }
 }

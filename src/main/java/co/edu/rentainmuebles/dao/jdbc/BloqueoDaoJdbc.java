@@ -7,7 +7,7 @@ public final class BloqueoDaoJdbc implements BloqueoDao {
   
   try(Connection c=ConexionBD.abrir()){c.setAutoCommit(false);try{
    long id;
-   try(PreparedStatement s=c.prepareStatement("INSERT INTO ocupacion(id_inmueble,fecha_inicio,fecha_fin,tipo) SELECT id_inmueble,?,?,'BLOQUEO' FROM inmueble WHERE id_inmueble=? AND id_propietario=? RETURNING id_ocupacion")){s.setObject(1,inicio);s.setObject(2,fin);s.setLong(3,inmuebleId);s.setLong(4,propietarioId);try(ResultSet r=s.executeQuery()){if(!r.next())throw new DaoException("El inmueble no pertenece al propietario.");id=r.getLong(1);}}
+   try(PreparedStatement s=c.prepareStatement("INSERT INTO ocupacion(id_inmueble,fecha_inicio,fecha_fin,tipo) SELECT id_inmueble,?,?,'BLOQUEO' FROM inmueble_operativo WHERE id_inmueble=? AND id_propietario=? RETURNING id_ocupacion")){s.setObject(1,inicio);s.setObject(2,fin);s.setLong(3,inmuebleId);s.setLong(4,propietarioId);try(ResultSet r=s.executeQuery()){if(!r.next())throw new DaoException("El inmueble no pertenece al propietario.");id=r.getLong(1);}}
    try(PreparedStatement s=c.prepareStatement("INSERT INTO bloqueo(id_ocupacion,id_propietario_solicitante,motivo) VALUES(?,?,?)")){s.setLong(1,id);s.setLong(2,propietarioId);s.setString(3,motivo.trim());s.executeUpdate();}c.commit();
   }catch(SQLException|RuntimeException e){c.rollback();throw e;}}catch(SQLException e){throw new DaoException("Las fechas están ocupadas o los datos no son válidos.",e);}
  }

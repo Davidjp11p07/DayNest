@@ -85,7 +85,7 @@
                 <version>${jetty.version}</version>
                 <configuration>
                     <httpConnector><host>0.0.0.0</host><port>${daynest.http.port}</port></httpConnector>
-                    <webApp><contextPath>/DayNest</contextPath></webApp>
+                    <webApp><contextPath>/DayNest</contextPath><tempDirectory>${project.build.directory}/jetty-${daynest.http.port}</tempDirectory></webApp>
                 </configuration>
                 <dependencies>
 

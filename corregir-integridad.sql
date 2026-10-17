@@ -1,4 +1,6 @@
 BEGIN;
+DO $$ BEGIN IF EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema=current_schema() AND table_name='asocia' AND table_type='BASE TABLE') THEN RAISE EXCEPTION 'Este script pertenece al modelo anterior. El modelo vigente usa MigrarProfesor'; END IF; END; $$;
+
 DO $$ BEGIN
  IF current_schema()<>'daynest' AND current_schema() !~ '^renta_test_[a-f0-9]{32}$' THEN RAISE EXCEPTION 'Esquema no autorizado'; END IF;
  IF EXISTS(SELECT 1 FROM giro g JOIN reserva r ON r.id_ocupacion=g.id_reserva JOIN ocupacion o USING(id_ocupacion) WHERE g.monto_comision<>round((o.fecha_fin-o.fecha_inicio)*r.precio_noche_pactado*g.porcentaje_comision,2) OR g.monto<>((o.fecha_fin-o.fecha_inicio)*r.precio_noche_pactado)-g.monto_comision) THEN RAISE EXCEPTION 'Hay giros historicos inconsistentes: no se modificaron'; END IF;

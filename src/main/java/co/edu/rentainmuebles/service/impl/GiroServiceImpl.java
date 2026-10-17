@@ -20,7 +20,8 @@ public final class GiroServiceImpl extends ServicioBase implements GiroService {
             if (d.pagos().totalPagado(reservaId).compareTo(r.getTotal()) < 0) { throw new NegocioException("La reserva debe estar pagada antes de generar el giro."); }
             if (r.getEstado() == EstadoReserva.CONFIRMADA) d.reservas().actualizarEstado(reservaId,EstadoReserva.FINALIZADA);
             Reserva finalizada=d.reservas().buscarPorId(reservaId).orElseThrow();
-            PoliticaComision.Desglose desglose=politica.calcular(d.pagos().totalPagado(reservaId));
+            PoliticaComision efectiva=d.reservas().comisionHistorica(reservaId).<PoliticaComision>map(PoliticaComisionPorcentaje::new).orElse(politica);
+            PoliticaComision.Desglose desglose=efectiva.calcular(r.getTotal());
             return d.giros().crear(new Giro(null,finalizada,finalizada.getPropietarioPactado(),desglose.neto(),referencia,ahora(),EstadoGiro.EJECUTADO,administradorId,"giro-reserva-"+reservaId+"-"+java.util.UUID.randomUUID(),desglose.porcentaje(),desglose.comision()));
         });
     }

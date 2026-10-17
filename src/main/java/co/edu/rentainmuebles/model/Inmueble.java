@@ -14,6 +14,8 @@ public final class Inmueble implements Identificable {
     private final int capacidad;
     private final BigDecimal precioPorNoche;
     private final EstadoInmueble estado;
+    private BigDecimal areaM2;
+    private Integer habitaciones;
     private Ciudad ubicacion;
     private String tipo;
     private String moneda="COP";
@@ -39,6 +41,13 @@ public final class Inmueble implements Identificable {
         this.ubicacion=ciudad; this.tipo=FiltrosInmueble.validarTipo(tipo); this.moneda=moneda;
     }
     public Inmueble(Long id,Propietario p,String titulo,Ciudad ciudad,String direccion,String descripcion,int capacidad,BigDecimal precio,EstadoInmueble estado,String tipo,String moneda,Boolean rural,Boolean mar){this(id,p,titulo,ciudad,direccion,descripcion,capacidad,precio,estado,tipo,moneda);this.esRural=rural;this.cercaMar=mar;}
+    public Inmueble conDetalles(BigDecimal area,Integer cuartos) {
+        if(area!=null && (area.signum()<=0 || area.compareTo(new BigDecimal("9999999999.99"))>0 || area.stripTrailingZeros().scale()>2))throw new IllegalArgumentException("El area debe ser positiva y admitir hasta dos decimales.");
+        if(cuartos!=null && (cuartos<=0||cuartos>32767))throw new IllegalArgumentException("Las habitaciones deben estar entre 1 y 32767.");
+        this.areaM2=area;this.habitaciones=cuartos;return this;
+    }
+    public BigDecimal getAreaM2(){return areaM2;}
+    public Integer getHabitaciones(){return habitaciones;}
     public Boolean getEsRural(){return esRural;}
     public Boolean getCercaMar(){return cercaMar;}
     public Ciudad getUbicacion(){return ubicacion;}

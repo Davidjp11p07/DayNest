@@ -7,6 +7,11 @@ import java.util.Objects;
 
 /** Guarda el neto y el beneficiario efectivo; la comisión monetaria se deriva. */
 public final class Giro extends MovimientoFinanciero {
+    private String origenAutorizacion="ADMINISTRADOR";
+    private String cuentaDestino="";
+    public Giro conAuditoria(String origen,String destino){origenAutorizacion=origen==null?"ADMINISTRADOR":origen;cuentaDestino=destino;return this;}
+    public String getOrigenAutorizacion(){return origenAutorizacion;}
+    public String getCuentaDestino(){return cuentaDestino;}
     private BigDecimal porcentajeComision = BigDecimal.ZERO;
     private BigDecimal montoComision = BigDecimal.ZERO;
     private final Propietario propietario;

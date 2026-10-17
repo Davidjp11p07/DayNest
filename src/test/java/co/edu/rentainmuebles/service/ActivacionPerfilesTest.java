@@ -39,6 +39,7 @@ class ActivacionPerfilesTest extends SoportePostgres {
         assertEquals(giro.getId(),servicios.giros.listarPropios(despues.getId()).get(0).getId());
         assertEquals(0,giro.getMonto().compareTo(giros.buscarPorId(giro.getId()).orElseThrow().getMonto()));
         assertEquals(1,pagos.listarPorReserva(previa.getId()).size());
+        var datos=new DatosCuentaService();datos.guardar(despues.getId(),Rol.CLIENTE,datos.consultar(despues.getId(),Rol.PROPIETARIO).cuenta(),false);
         Reserva nueva=servicios.reservas.crear(despues.getId(),inmueble.getId(),HOY.plusDays(20),HOY.plusDays(22),1);
         assertEquals(despues.getId(),nueva.getCliente().getId());
         assertEquals(EstadoReserva.CONFIRMADA,servicios.pagos.registrar(despues.getId(),nueva.getId(),MetodoPago.TARJETA,null).getReserva().getEstado());

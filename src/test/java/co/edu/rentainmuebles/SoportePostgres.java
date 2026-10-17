@@ -32,6 +32,9 @@ public abstract class SoportePostgres {
     protected Inmueble inmueble;
     private String esquema,anterior,hash;
 
+    protected boolean nomenclaturaNueva(){return esquemaSql().equals("schema.sql")||esquemaSql().equals("src/test/resources/schema-antes-giros.sql");}
+    protected boolean sembrarCuentas(){return true;}
+    protected String esquemaSql(){return "schema.sql";}
     @BeforeAll final void crearEsquema() throws Exception {
         anterior = System.getProperty("renta.db.schema");
         if(anterior != null) throw new IllegalStateException("No establezca renta.db.schema al ejecutar JUnit.");
@@ -41,7 +44,7 @@ public abstract class SoportePostgres {
             try {
                 ejecutar(c,"CREATE SCHEMA \""+esquema+"\"");
                 ejecutar(c,"SET search_path TO \""+esquema+"\",public");
-                ejecutar(c,Files.readString(Path.of("schema.sql")).replaceAll("(?im)^\\s*(BEGIN|COMMIT);\\s*$",""));
+                ejecutar(c,Files.readString(Path.of(esquemaSql())).replaceAll("(?im)^\\s*(BEGIN|COMMIT);\\s*$",""));
                 c.commit();
             } catch(Exception e) { c.rollback(); esquema=null; throw e; }
         }
@@ -51,25 +54,33 @@ public abstract class SoportePostgres {
     @BeforeEach final void datosLimpios() throws Exception {
         try(Connection c=ConexionBD.abrir()) {
             if(!esquema.equals(c.getSchema())) throw new IllegalStateException("Se rechazó el reinicio fuera del esquema de pruebas.");
-            ejecutar(c,"TRUNCATE giro,movimiento_pago,bloqueo,reserva,ocupacion,inmueble,administrador,cliente,propietario,usuario,pais RESTART IDENTITY CASCADE");
+            ejecutar(c,"TRUNCATE giro,movimiento_pago,bloqueo,"+(nomenclaturaNueva()?"renta":"reserva")+(nomenclaturaNueva()?",ocupacion,inmuebles,administrador,clientes,propietarios,usuario,paises RESTART IDENTITY CASCADE":",ocupacion,inmueble,administrador,cliente,propietario,usuario,pais RESTART IDENTITY CASCADE"));
         }
-        try(Connection c=ConexionBD.abrir()){ejecutar(c,Files.readString(Path.of("geografia.sql")));}
+        try(Connection c=ConexionBD.abrir()){ejecutar(c,Files.readString(Path.of(nomenclaturaNueva()?"geografia.sql":"src/test/resources/geografia-antes-nomenclatura.sql")));}
         admin=usuarios.crear(new Usuario(null,"Administradora prueba","admin@junit.test",hash,null,true,true,false,false));
         propietario=usuarios.crear(new Usuario(null,"Propietario prueba","propietario@junit.test",hash,null,true,false,false,true)).getPropietario();
         cliente=usuarios.crear(new Usuario(null,"Cliente prueba","cliente@junit.test",hash,null,true,false,true,false)).getCliente();
         otroCliente=usuarios.crear(new Usuario(null,"Otro cliente","otro@junit.test",hash,null,true,false,true,false)).getCliente();
         inmueble=inmuebles.crear(new Inmueble(null,propietario,"Casa de prueba","Bogotá","Calle 10","Descripción de prueba",4,new BigDecimal("150000"),EstadoInmueble.PUBLICADO));
         servicios=conReloj(RELOJ);
+        if(esquemaSql().equals("schema.sql"))try(Connection c=ConexionBD.abrir();Statement t=c.createStatement()){
+            t.execute("INSERT INTO configuracion_comision(porcentaje) VALUES(0)");
+            if(sembrarCuentas()){
+                t.execute("INSERT INTO banco(nom_b,id_ps) SELECT 'Banco fixture',min(id_ps) FROM paises");
+                t.execute("INSERT INTO vincula(id_cl,id_b,num_cta,tipo_cta) SELECT id_cl,(SELECT min(id_b) FROM banco),'0000123456','AHORROS' FROM clientes");
+                t.execute("INSERT INTO relaciona(id_p,id_b,num_cta,tipo_cta) SELECT id_p,(SELECT min(id_b) FROM banco),'0000987654','CORRIENTE' FROM propietarios");
+            }
+        }
     }
     protected void vencerReservaParaPrueba(long id) throws Exception {
         try(Connection c=ConexionBD.abrir()) {
             if(!c.getSchema().matches("renta_test_[a-f0-9]{32}")) throw new IllegalStateException("Fixture fuera de pruebas");
             c.setAutoCommit(false);
             try(Statement t=c.createStatement()) {
-                t.execute("ALTER TABLE reserva DISABLE TRIGGER tg_validar_reserva");
+                t.execute("ALTER TABLE renta DISABLE TRIGGER tg_validar_reserva");
                 try(PreparedStatement q=c.prepareStatement("UPDATE reserva SET creada_en=clock_timestamp()-interval '31 minutes',expira_en=clock_timestamp()-interval '1 minute' WHERE id_ocupacion=?")){q.setLong(1,id);q.executeUpdate();}
                 t.execute("SET CONSTRAINTS ALL IMMEDIATE");
-                t.execute("ALTER TABLE reserva ENABLE TRIGGER tg_validar_reserva");c.commit();
+                t.execute("ALTER TABLE renta ENABLE TRIGGER tg_validar_reserva");c.commit();
             }catch(Exception e){c.rollback();throw e;}
         }
     }
@@ -87,9 +98,11 @@ public abstract class SoportePostgres {
             c.setAutoCommit(false);
             try(Statement s=c.createStatement()){
                 s.execute("ALTER TABLE ocupacion DISABLE TRIGGER tg_ocupacion_inmutable");
+                if(nomenclaturaNueva())s.execute("ALTER TABLE renta DISABLE TRIGGER ab_asignar_intento");
                 s.execute("UPDATE ocupacion SET fecha_inicio=CURRENT_DATE-"+r.getPeriodo().getNoches()+",fecha_fin=CURRENT_DATE WHERE id_ocupacion="+r.getId());
                 s.execute("SET CONSTRAINTS ALL IMMEDIATE");
-                s.execute("ALTER TABLE ocupacion ENABLE TRIGGER tg_ocupacion_inmutable");c.commit();
+                s.execute("ALTER TABLE ocupacion ENABLE TRIGGER tg_ocupacion_inmutable");
+                if(nomenclaturaNueva())s.execute("ALTER TABLE renta ENABLE TRIGGER ab_asignar_intento");c.commit();
             }
         }catch(Exception e){throw new RuntimeException(e);}return servicios;
     }

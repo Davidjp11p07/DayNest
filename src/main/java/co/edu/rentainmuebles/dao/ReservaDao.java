@@ -11,6 +11,7 @@ public interface ReservaDao {
     Optional<Reserva> buscarPorIdParaActualizar(long id);
     Optional<Reserva> buscarPorId(long id);
     List<Reserva> listar();
+    Optional<BigDecimal> comisionHistorica(long id);
     Reserva crear(Reserva reserva);
     void actualizarEstado(long id, EstadoReserva estado);
     List<Reserva> buscarPorPropietario(long propietarioId);

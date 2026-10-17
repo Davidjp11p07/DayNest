@@ -1,6 +1,8 @@
 -- Adaptación incremental al SVG; NO inicializa, trunca ni elimina tablas.
 -- Ejecutar con MigrarModeloSvg, respaldo verificado y aplicación detenida.
 BEGIN;
+DO $$ BEGIN IF EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema=current_schema() AND table_name='asocia' AND table_type='BASE TABLE') THEN RAISE EXCEPTION 'Este script pertenece al modelo anterior. El modelo vigente usa MigrarProfesor'; END IF; END; $$;
+
 DO $$
 BEGIN
   IF current_schema() <> 'daynest' AND current_schema() !~ '^renta_test_[a-f0-9]{32}$' THEN

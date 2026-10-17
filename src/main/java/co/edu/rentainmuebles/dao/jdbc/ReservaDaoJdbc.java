@@ -12,6 +12,10 @@ public final class ReservaDaoJdbc extends JdbcSoporte<Reserva> implements Reserv
  public List<Reserva> buscarPorCliente(long id){return consultar(SELECT+" WHERE r.id_cliente=? ORDER BY r.id_ocupacion",s->s.setLong(1,id(id)));}
  public List<Reserva> buscarPorInmueble(long id){return consultar(SELECT+" WHERE o.id_inmueble=? ORDER BY r.id_ocupacion",s->s.setLong(1,id(id)));}
  public List<Reserva> buscarPorEstado(EstadoReserva e){return consultar(SELECT+" WHERE r.estado=? ORDER BY r.id_ocupacion",s->s.setString(1,e.name()));}
+ public Optional<java.math.BigDecimal> comisionHistorica(long id){return conexion(c->{
+  try(Statement t=c.createStatement();ResultSet x=t.executeQuery("SELECT to_regclass('configuracion_comision') IS NOT NULL")){x.next();if(!x.getBoolean(1))return Optional.empty();}
+  try(PreparedStatement t=c.prepareStatement("SELECT porcentaje_comision FROM renta WHERE id_ocupacion=?")){t.setLong(1,id(id));try(ResultSet x=t.executeQuery()){return x.next()?Optional.ofNullable(x.getBigDecimal(1)):Optional.empty();}}
+ });}
  public Reserva crear(Reserva r){nueva(r.getId());return transaccion(c->{
   long id;
   try(PreparedStatement s=c.prepareStatement("INSERT INTO ocupacion(id_inmueble,fecha_inicio,fecha_fin,tipo) VALUES(?,?,?,'RESERVA') RETURNING id_ocupacion")){s.setLong(1,r.getInmueble().getId());s.setObject(2,r.getPeriodo().getEntrada());s.setObject(3,r.getPeriodo().getSalida());try(ResultSet rs=s.executeQuery()){rs.next();id=rs.getLong(1);}}

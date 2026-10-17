@@ -12,5 +12,6 @@ public interface PagoDao {
     Pago crear(Pago pago);
     Optional<Pago> buscarPorReserva(long reservaId);
     List<Pago> listarPorReserva(long reservaId);
+    boolean tieneCuentaCliente(long reservaId);
     BigDecimal totalPagado(long reservaId);
 }

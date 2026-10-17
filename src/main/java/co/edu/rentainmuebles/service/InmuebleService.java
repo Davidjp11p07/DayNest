@@ -14,5 +14,7 @@ public interface InmuebleService {
     List<Inmueble> buscar(String ciudad,BigDecimal minimo,BigDecimal maximo,Integer capacidad,LocalDate entrada,LocalDate salida,FiltrosInmueble filtros);
     Inmueble publicar(long propietarioId,String titulo,String ciudad,String direccion,String descripcion,int capacidad,BigDecimal precio,String tipo,Boolean rural,Boolean mar);
     Inmueble editar(long propietarioId,long inmuebleId,String titulo,String ciudad,String direccion,String descripcion,int capacidad,BigDecimal precio,String tipo,Boolean rural,Boolean mar);
+    Inmueble publicar(long propietarioId,String titulo,String ciudad,String direccion,String descripcion,int capacidad,BigDecimal precio,String tipo,Boolean rural,Boolean mar,BigDecimal area,Integer habitaciones);
+    Inmueble editar(long propietarioId,long inmuebleId,String titulo,String ciudad,String direccion,String descripcion,int capacidad,BigDecimal precio,String tipo,Boolean rural,Boolean mar,BigDecimal area,Integer habitaciones);
     List<Inmueble> listarPropios(long propietarioId);
 }

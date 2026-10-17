@@ -16,5 +16,9 @@ public final class PagoDaoJdbc extends JdbcSoporte<Pago> implements PagoDao {
   if(p.getEstado()!=EstadoPago.PENDIENTE)try(PreparedStatement s=c.prepareStatement("UPDATE movimiento_pago SET estado=?,resuelto_en=clock_timestamp() WHERE id_movimiento=?")){s.setString(1,p.getEstado().name());s.setLong(2,id);s.executeUpdate();}
   return new PagoDaoJdbc(c).buscarPorId(id).orElseThrow();
  });}
+ public boolean tieneCuentaCliente(long reservaId){return conexion(c->{
+  try(Statement t=c.createStatement();ResultSet x=t.executeQuery("SELECT to_regclass('configuracion_comision') IS NOT NULL")){x.next();if(!x.getBoolean(1))return true;}
+  try(PreparedStatement t=c.prepareStatement("SELECT EXISTS(SELECT 1 FROM renta r JOIN vincula v USING(id_cl) WHERE r.id_ocupacion=?)")){t.setLong(1,id(reservaId));try(ResultSet x=t.executeQuery()){x.next();return x.getBoolean(1);}}
+ });}
  public BigDecimal totalPagado(long id){return conexion(c->{try(PreparedStatement s=c.prepareStatement("SELECT COALESCE(SUM(CASE WHEN clase='COBRO' THEN monto ELSE -monto END),0) FROM movimiento_pago WHERE id_reserva=? AND estado='APROBADO'")){s.setLong(1,id(id));try(ResultSet r=s.executeQuery()){r.next();return r.getBigDecimal(1);}}});}
 }
