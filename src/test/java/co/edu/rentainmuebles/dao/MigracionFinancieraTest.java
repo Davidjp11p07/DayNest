@@ -16,7 +16,7 @@ class MigracionFinancieraTest extends SoportePostgres {
   var diez=new Servicios(unidad,RELOJ,new PoliticaComisionPorcentaje(new BigDecimal("0.1000")));
   var humano=diez.giros.generar(admin.getId(),antigua.getId(),"HISTORICO-HUMANO");
   var otroInmueble=servicios.inmuebles.publicar(propietario.getId(),"Historico dos","Bogota","Calle 2","Prueba",4,new BigDecimal("150000"));
-  var sinGiro=servicios.reservas.crear(cliente.getId(),otroInmueble.getId(),HOY.plusDays(10),HOY.plusDays(13),2);servicios.pagos.registrar(cliente.getId(),sinGiro.getId(),MetodoPago.TRANSFERENCIA,"HISTORICO-SIN-GIRO");
+  var sinGiro=servicios.reservas.crearConPago(cliente.getId(),otroInmueble.getId(),HOY.plusDays(10),HOY.plusDays(13),2,"HISTORICO-SIN-GIRO",null);
   try(Connection c=ConexionBD.abrir()){MigrarGirosAutomaticos.migrar(c);MigrarGirosAutomaticos.migrar(c);}
   var leido=giros.buscarPorId(humano.getId()).orElseThrow();
   assertEquals(new BigDecimal("405000.00"),leido.getMonto());assertEquals(new BigDecimal("0.1000"),leido.getPorcentajeComision());assertEquals(admin.getId(),leido.getAdministradorId());assertEquals("ADMINISTRADOR",leido.getOrigenAutorizacion());

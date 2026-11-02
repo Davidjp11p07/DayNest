@@ -16,3 +16,5 @@ Los scripts de mantenimiento pueden borrar datos o revertir estructuras; no form
 Los esquemas historicos de pruebas permanecen en `src/test/resources/`, donde las pruebas los utilizan como fixtures aislados.
 
 `migraciones/pagos-transferencia.sql` actualiza funciones de una instalación financiera existente para admitir cuenta registrada u ocasional. Se aplica mediante `MigrarPagosTransferencia --aplicar`, que crea respaldo, usa una transacción y verifica que las filas de las 19 tablas no cambien. El esquema de instalación nuevo ya incorpora estas funciones.
+
+`migraciones/fotos-calificaciones.sql` agrega fotos por inmueble y calificaciones de huéspedes y propietarios. Para una instalación existente, aplícalo una vez conectado a la base y con el esquema DayNest en el `search_path` (por ejemplo, `SET search_path TO daynest,public;` antes de ejecutar el archivo). Las instalaciones nuevas ya crean estas tablas desde `instalacion/schema.sql`.

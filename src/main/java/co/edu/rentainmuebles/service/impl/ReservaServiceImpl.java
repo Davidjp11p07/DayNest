@@ -17,6 +17,9 @@ public final class ReservaServiceImpl extends ServicioBase implements ReservaSer
 
     public ReservaServiceImpl(UnidadTrabajoDao trabajo, Clock reloj) { super(trabajo,reloj); }
     @Override public Reserva crear(long clienteId, long inmuebleId, LocalDate entrada, LocalDate salida, int huespedes) {
+        return crearConPago(clienteId,inmuebleId,entrada,salida,huespedes,null,null);
+    }
+    @Override public Reserva crearConPago(long clienteId, long inmuebleId, LocalDate entrada, LocalDate salida, int huespedes, String referencia, CuentaBancaria cuentaOcasional) {
         return ejecutar(d -> {
             Cliente c = actor(d,clienteId,Rol.CLIENTE).getCliente();
             PeriodoEstadia periodo = new PeriodoEstadia(entrada,salida);
@@ -25,7 +28,15 @@ public final class ReservaServiceImpl extends ServicioBase implements ReservaSer
             if (i.getEstado() != EstadoInmueble.PUBLICADO || !i.getPropietario().isActivo()) { throw new NegocioException("El inmueble o su propietario están inactivos."); }
             if (huespedes <= 0 || huespedes > i.getCapacidad()) { throw new NegocioException("La cantidad de huéspedes debe ser positiva y no exceder la capacidad del inmueble."); }
             if (d.reservas().existeCruce(inmuebleId,periodo,null)) { throw new NegocioException("El inmueble no está disponible en esas fechas."); }
-            return d.reservas().crear(new Reserva(null,c,i,periodo,huespedes,i.getPrecioPorNoche(),EstadoReserva.PENDIENTE_PAGO,ahora()));
+            // El estado inicial existe solamente dentro de esta transaccion: nunca se devuelve pendiente.
+            Reserva r=d.reservas().crear(new Reserva(null,c,i,periodo,huespedes,i.getPrecioPorNoche(),EstadoReserva.PENDIENTE_PAGO,ahora()));
+            if(cuentaOcasional==null&&!d.pagos().tieneCuentaCliente(r.getId()))
+                throw new NegocioException("Pago fallado: registre una cuenta o indique una para esta reserva. Las fechas siguen disponibles.");
+            Pago cobro=new Pago(null,r,r.getTotal(),referencia,ahora(),EstadoPago.APROBADO,"COBRO",null,"cobro-reserva-"+r.getId());
+            if(cuentaOcasional!=null)cobro.conCuentaOcasional(cuentaOcasional);
+            d.pagos().crear(cobro);
+            d.reservas().actualizarEstado(r.getId(),EstadoReserva.CONFIRMADA);
+            return d.reservas().buscarPorId(r.getId()).orElseThrow(()->new NegocioException("No se pudo recuperar la reserva confirmada."));
         });
     }
     @Override public void cancelar(long clienteId, long reservaId) {

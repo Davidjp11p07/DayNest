@@ -1,0 +1,16 @@
+.photo-label{position:absolute;left:12px;bottom:12px;padding:6px 10px;border-radius:20px;background:#132b2bd9;color:white;font-size:.75rem;font-weight:700}
+.gallery button{position:relative}
+.photo-management{margin-top:32px;padding-top:24px;border-top:1px solid var(--line)}
+.owner-photo-grid,.reviews{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-top:20px}
+.owner-photo-item,.review{padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface,#fff)}
+.owner-photo-item img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px}
+.owner-photo-item form,.review-form form{margin-top:12px}
+.rating-average{font-size:1.15rem}
+.rating-average strong,.review-stars{color:#9a6500}
+.review p{margin:.4rem 0}
+.review-form{margin-top:12px;max-width:320px}
+.review-form summary{cursor:pointer;color:var(--green);font-weight:700}
+.review-form textarea{min-height:72px}
+.guest-reviews{margin-top:10px;max-width:380px}
+.guest-reviews summary{cursor:pointer;color:var(--green);font-weight:700}
+.guest-reviews .reviews{grid-template-columns:1fr;gap:8px;margin-top:8px}

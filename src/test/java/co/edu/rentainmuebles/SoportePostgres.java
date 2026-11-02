@@ -86,7 +86,8 @@ public abstract class SoportePostgres {
     }
     protected Servicios conReloj(Clock reloj) { return new Servicios(unidad,reloj,new PoliticaComisionPorcentaje(BigDecimal.ZERO)); }
     protected Reserva nuevaReserva(LocalDate entrada,LocalDate salida) { return servicios.reservas.crear(cliente.getId(),inmueble.getId(),entrada,salida,2); }
-    protected Reserva reservaFutura() { return nuevaReserva(HOY.plusDays(10),HOY.plusDays(13)); }
+    // Fixture de compatibilidad: las pruebas financieras antiguas parten de una pendiente historica.
+    protected Reserva reservaFutura() { return reservas.crear(new Reserva(null,cliente,inmueble,new PeriodoEstadia(HOY.plusDays(10),HOY.plusDays(13)),2,inmueble.getPrecioPorNoche(),EstadoReserva.PENDIENTE_PAGO,LocalDateTime.now(RELOJ))); }
     protected Reserva reservaPagada() {
         Reserva r=reservaFutura();
         return servicios.pagos.registrar(cliente.getId(),r.getId(),MetodoPago.TRANSFERENCIA,"PAGO-JUNIT").getReserva();

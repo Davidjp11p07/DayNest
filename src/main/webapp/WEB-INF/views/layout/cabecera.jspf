@@ -9,6 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="${fn:escapeXml(pageContext.request.contextPath)}/assets/img/daynest-logo.svg">
 <link rel="stylesheet" href="${fn:escapeXml(pageContext.request.contextPath)}/assets/styles.css">
 <link rel="stylesheet" href="${fn:escapeXml(pageContext.request.contextPath)}/assets/daynest.css">
+<link rel="stylesheet" href="${fn:escapeXml(pageContext.request.contextPath)}/assets/funciones-sociales.css">
 <script src="${fn:escapeXml(pageContext.request.contextPath)}/assets/formularios.js" defer></script>
 <script src="${fn:escapeXml(pageContext.request.contextPath)}/assets/daynest.js" defer></script>
 </head><body>

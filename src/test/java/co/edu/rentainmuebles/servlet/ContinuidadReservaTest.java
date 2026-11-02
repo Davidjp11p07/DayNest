@@ -47,6 +47,25 @@ class ContinuidadReservaTest extends SoportePostgres {
         assertEquals("5",((Map<?,?>)n.atributos.get("form")).get("huespedes"));
     }
 
+    @Test void enviarReservaCobraInmediatamenteYNoOfrecePagoPosterior() throws Exception {
+        Navegador n=new Navegador();n.sesion.put("usuario",new UsuarioSesion(cliente.getUsuario()));
+        n.ruta="/cliente";n.path="/reservar";n.metodo="POST";
+        n.parametros.put("inmuebleId",inmueble.getId().toString());n.parametros.put("huespedes","2");n.parametros.put("cuentaPago","REGISTRADA");
+        new ClienteServlet().doPost(n.request,n.response);
+        assertEquals("exito",n.sesion.get("flashTipo"));
+        var r=reservas.listar().get(0);
+        assertEquals(co.edu.rentainmuebles.model.EstadoReserva.CONFIRMADA,r.getEstado());
+        assertEquals(0,r.getTotal().compareTo(pagos.totalPagado(r.getId())));
+        n.path="/pagar";n.metodo="GET";
+        new ClienteServlet().doGet(n.request,n.response);
+        assertEquals("/DayNest/cliente/reservas",n.redirect);
+        n.metodo="POST";
+        new ClienteServlet().doPost(n.request,n.response);
+        assertEquals("/DayNest/cliente/reservas",n.redirect);
+        assertEquals("error",n.sesion.get("flashTipo"));
+        assertEquals(1,pagos.listarPorReserva(r.getId()).size());
+    }
+
     @Test void retornoNoAdmiteDestinoExternoNiGuardaPost() throws Exception {
         Navegador n=new Navegador();n.ruta="/cliente";n.path="/reservar";
         n.parametros.put("retorno","https://ejemplo.test");n.parametros.put("huespedes","2&retorno=https://ejemplo.test");

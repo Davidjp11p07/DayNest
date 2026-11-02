@@ -53,7 +53,7 @@ class IngresosServiceTest extends SoportePostgres {
   var euros=servicios.inmuebles.publicar(propietario.getId(),"Casa EUR","Bogota","Calle 3","Prueba",2,new BigDecimal("100"));
   sql("UPDATE inmuebles SET moneda='EUR' WHERE id_i="+euros.getId());
   var segunda=servicios.reservas.crear(cliente.getId(),euros.getId(),HOY.plusDays(20),HOY.plusDays(22),1);
-  servicios.pagos.registrar(cliente.getId(),segunda.getId(),MetodoPago.TRANSFERENCIA,"EUR");liquidar(segunda);
+  liquidar(segunda);
   var totales=administrador().totales();assertEquals(2,totales.size());
   importe("60",totales.stream().filter(t->t.moneda().equals("EUR")).findFirst().orElseThrow().comisionLiquidada());
   importe("135000",totales.stream().filter(t->t.moneda().equals("COP")).findFirst().orElseThrow().comisionLiquidada());

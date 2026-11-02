@@ -34,7 +34,7 @@ class GirosAutomaticosTest extends SoportePostgres {
  }
  @Test void cambiarTasaNoModificaOperacionPagada(){
   var r=reservaPagada();comisiones.cambiar(admin.getId(),new BigDecimal("45"));alFinalizar(r);ciclo();assertEquals(new BigDecimal("0.3000"),giros.buscarPorReserva(r.getId()).orElseThrow().getPorcentajeComision());
-  var nueva=nuevaReserva(HOY.plusDays(20),HOY.plusDays(22));servicios.pagos.registrar(cliente.getId(),nueva.getId(),MetodoPago.TRANSFERENCIA,null);assertEquals(new BigDecimal("0.4500"),reservas.comisionHistorica(nueva.getId()).orElseThrow());
+  var nueva=nuevaReserva(HOY.plusDays(20),HOY.plusDays(22));assertEquals(new BigDecimal("0.4500"),reservas.comisionHistorica(nueva.getId()).orElseThrow());
  }
  @Test void cambiarCuentaNoModificaGiroHistorico()throws Exception {
   var r=reservaPagada();alFinalizar(r);ciclo();long banco=numero("SELECT min(id_b) FROM banco");new DatosCuentaService().guardar(propietario.getId(),Rol.PROPIETARIO,new CuentaBancaria(banco,"0000777788","AHORROS"),false);

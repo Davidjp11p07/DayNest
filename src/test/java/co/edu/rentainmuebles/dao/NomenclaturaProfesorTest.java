@@ -20,7 +20,7 @@ class NomenclaturaProfesorTest extends SoportePostgres {
   assertNotEquals(primera.getId(),segunda.getId());
   try(Connection c=ConexionBD.abrir();Statement s=c.createStatement();ResultSet r=s.executeQuery("SELECT num_intento,estado FROM renta ORDER BY num_intento")){
    assertTrue(r.next());assertEquals(1,r.getLong(1));assertEquals("CANCELADA",r.getString(2));
-   assertTrue(r.next());assertEquals(2,r.getLong(1));assertEquals("PENDIENTE_PAGO",r.getString(2));assertFalse(r.next());
+   assertTrue(r.next());assertEquals(2,r.getLong(1));assertEquals("CONFIRMADA",r.getString(2));assertFalse(r.next());
   }
  }
  @Test void intentoYClaveNoSePuedenReescribir()throws Exception {

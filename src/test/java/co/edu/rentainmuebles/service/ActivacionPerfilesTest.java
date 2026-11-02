@@ -42,7 +42,8 @@ class ActivacionPerfilesTest extends SoportePostgres {
         var datos=new DatosCuentaService();datos.guardar(despues.getId(),Rol.CLIENTE,datos.consultar(despues.getId(),Rol.PROPIETARIO).cuenta(),false);
         Reserva nueva=servicios.reservas.crear(despues.getId(),inmueble.getId(),HOY.plusDays(20),HOY.plusDays(22),1);
         assertEquals(despues.getId(),nueva.getCliente().getId());
-        assertEquals(EstadoReserva.CONFIRMADA,servicios.pagos.registrar(despues.getId(),nueva.getId(),MetodoPago.TRANSFERENCIA,null).getReserva().getEstado());
+        assertEquals(EstadoReserva.CONFIRMADA,nueva.getEstado());
+        assertEquals(0,nueva.getTotal().compareTo(pagos.totalPagado(nueva.getId())));
     }
 
     @Test void activacionRepetidaEnAmbosSentidosNoDuplicaPerfiles() throws Exception {

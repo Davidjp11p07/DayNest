@@ -16,8 +16,7 @@ class PrepararIngresosHttp {
   }
  }
  static Reserva pagar(Servicios s,long cliente,Inmueble inmueble,int dias,int noches){
-  var r=s.reservas.crear(cliente,inmueble.getId(),s.hoy().plusDays(dias),s.hoy().plusDays(dias+noches),1);
-  return s.pagos.registrar(cliente,r.getId(),MetodoPago.TRANSFERENCIA,"INGRESOS-"+r.getId()).getReserva();
+  return s.reservas.crear(cliente,inmueble.getId(),s.hoy().plusDays(dias),s.hoy().plusDays(dias+noches),1);
  }
  static void terminar(Reserva r)throws Exception {
   try(Connection c=ConexionBD.abrir();Statement s=c.createStatement()){

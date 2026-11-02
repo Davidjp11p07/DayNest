@@ -8,6 +8,7 @@ import java.util.List;
 public interface ReservaService {
     List<Reserva> listarRecibidas(long propietarioId);
     Reserva crear(long clienteId, long inmuebleId, LocalDate entrada, LocalDate salida, int huespedes);
+    Reserva crearConPago(long clienteId, long inmuebleId, LocalDate entrada, LocalDate salida, int huespedes, String referencia, CuentaBancaria cuentaOcasional);
     void cancelar(long clienteId, long reservaId);
     List<Reserva> listarPropias(long clienteId);
 }

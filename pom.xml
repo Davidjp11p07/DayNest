@@ -77,7 +77,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId><artifactId>maven-war-plugin</artifactId>
                 <version>3.4.0</version>
-                <configuration><failOnMissingWebXml>false</failOnMissingWebXml></configuration>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <!-- Utilidades locales disponibles en target/classes, fuera del despliegue web. -->
+                    <packagingExcludes>WEB-INF/classes/co/edu/rentainmuebles/verification/**</packagingExcludes>
+                </configuration>
             </plugin>
             <!-- Jetty 12 / EE10 usa jakarta.* y requiere Java 17. -->
             <plugin>
