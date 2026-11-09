@@ -14,6 +14,19 @@ public final class ClienteServlet extends HttpServlet {
             switch(ruta) {
                 case "/reservar" -> { r.setAttribute("inmueble",Web.servicios(r).inmuebles.obtenerPublicado(Web.id(r,"id"))); var datos=new co.edu.rentainmuebles.service.DatosCuentaService(); r.setAttribute("cuentaRegistrada",datos.consultar(usuario,Rol.CLIENTE).cuenta()); r.setAttribute("bancos",datos.bancos()); Web.vista(r,p,"cliente/reservar"); }
                 case "/reservas" -> { resumenes(r,usuario); Web.vista(r,p,"cliente/reservas"); }
+                case "/reserva" -> {
+                    long id=Web.id(r,"id");
+                    var reserva=Web.servicios(r).reservas.listarPropias(usuario).stream().filter(x->x.getId()==id).findFirst();
+                    if(reserva.isEmpty()){p.sendError(404);return;}
+                    r.setAttribute("reserva",reserva.get());
+                    r.setAttribute("resumen",Web.servicios(r).pagos.resumen(usuario,id));
+                    r.setAttribute("fotosReserva",new co.edu.rentainmuebles.service.ContenidoInmuebleService().fotosPublicas(reserva.get().getInmueble().getId()));
+                    boolean ingles="en".equals(r.getAttribute("idioma"));
+                    var formato=java.time.format.DateTimeFormatter.ofPattern(ingles?"MMM d":"d 'de' MMM",ingles?java.util.Locale.ENGLISH:java.util.Locale.forLanguageTag("es-CO"));
+                    r.setAttribute("entradaReserva",reserva.get().getPeriodo().getEntrada().format(formato));
+                    r.setAttribute("salidaReserva",reserva.get().getPeriodo().getSalida().format(formato));
+                    Web.vista(r,p,"cliente/reserva");
+                }
                 case "/historial" -> { resumenes(r,usuario); r.setAttribute("pagos",Web.servicios(r).pagos.listarPropios(usuario)); Web.vista(r,p,"cliente/historial"); }
                 case "/pagar" -> Web.redirect(r,p,"/cliente/reservas");
                 default -> p.sendError(404);
@@ -27,7 +40,7 @@ public final class ClienteServlet extends HttpServlet {
         var resumenes=new java.util.HashMap<Long,co.edu.rentainmuebles.service.ResumenReserva>();
         for(Reserva reserva:reservas) resumenes.put(reserva.getId(),Web.servicios(r).pagos.resumen(usuario,reserva.getId()));
         r.setAttribute("resumenes",resumenes);
-        var contenido=new co.edu.rentainmuebles.dao.jdbc.ContenidoInmuebleDaoJdbc();var calificados=new java.util.HashMap<Long,Boolean>();
+        var contenido=new co.edu.rentainmuebles.service.ContenidoInmuebleService();var calificados=new java.util.HashMap<Long,Boolean>();
         for(Reserva reserva:reservas)if(reserva.getEstado()==EstadoReserva.FINALIZADA)calificados.put(reserva.getId(),contenido.yaCalifico(usuario,"CLIENTE",reserva.getId()));
         r.setAttribute("calificados",calificados);
     }
@@ -46,7 +59,7 @@ public final class ClienteServlet extends HttpServlet {
             }
             else if("/cancelar".equals(ruta)) { Web.servicios(r).reservas.cancelar(usuario,Web.id(r,"id")); Web.flash(r,"exito","Reserva cancelada. Las fechas quedaron disponibles; los cobros se devolvieron en la simulación."); }
             else if("/pagar".equals(ruta)) { throw new NegocioException("El pago se realiza automáticamente al reservar. Cree una nueva reserva."); }
-            else if("/calificar".equals(ruta)) {new co.edu.rentainmuebles.dao.jdbc.ContenidoInmuebleDaoJdbc().calificar(usuario,"CLIENTE",Web.id(r,"id"),Web.requerido(r,"puntuacion"),Web.opcional(r,"comentario")==null?"":Web.opcional(r,"comentario"));Web.flash(r,"exito","Gracias por calificar tu estadía.");}
+            else if("/calificar".equals(ruta)) {new co.edu.rentainmuebles.service.ContenidoInmuebleService().calificar(usuario,"CLIENTE",Web.id(r,"id"),Web.requerido(r,"puntuacion"),Web.opcional(r,"comentario")==null?"":Web.opcional(r,"comentario"));Web.flash(r,"exito","Gracias por calificar tu estadía.");}
             else { p.sendError(404); return; }
         } catch(NegocioException e) {
             if("/reservar".equals(ruta)) {

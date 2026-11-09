@@ -57,7 +57,18 @@ with sync_playwright() as pw:
  report['checks'].append('Combinación sin coincidencias muestra estado vacío claro')
  go('/buscar?paisId=1&divisionId=5&tipo=CABAÑA');assert page.locator('.filter-chip').filter(has_text='Colombia').count()==2
  go('/buscar?ciudad=Cartagena&tipo=APARTAMENTO');assert 'España' in page.locator('main').inner_text() and 'Colombia' in page.locator('main').inner_text()
- go('/buscar?ciudad=Bogota');assert page.locator('.property-card').count()==2
+ # El fixture de ingresos también publica en Bogotá: comparar todos los IDs, sin fijar el total a dos.
+ def ids_bogota(nombre):
+  go('/buscar?ciudad='+nombre);ids=set()
+  while True:
+   for card in page.locator('.property-card').all():
+    assert 'Bogotá' in card.locator('.city').inner_text()
+    ids.add(card.locator('h3 a').get_attribute('href'))
+   siguiente=page.locator('.pagination a').filter(has_text='Siguiente')
+   if siguiente.count()==0:break
+   siguiente.click();page.wait_for_load_state('networkidle')
+  return ids
+ sin_tilde=ids_bogota('Bogota');assert sin_tilde and sin_tilde==ids_bogota('Bogotá')
  report['checks'].append('Búsqueda convencional sin tilde y Cartagena homónima se conservan')
  go('/buscar?tipo=APARTAMENTO');link=page.locator('.pagination a').filter(has_text='Siguiente');assert link.count()==1;assert 'tipo=APARTAMENTO' in link.get_attribute('href');link.click();page.wait_for_load_state('networkidle');assert page.locator('#tipo').input_value()=='APARTAMENTO'
  report['checks'].append('Paginación conserva filtro')

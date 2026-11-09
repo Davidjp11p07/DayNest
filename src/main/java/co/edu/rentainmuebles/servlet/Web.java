@@ -17,6 +17,15 @@ public final class Web {
     private Web() { }
     public static Servicios servicios(HttpServletRequest r) { return (Servicios) r.getServletContext().getAttribute("servicios"); }
     public static UsuarioSesion usuario(HttpServletRequest r) { HttpSession s=r.getSession(false); return s==null?null:(UsuarioSesion)s.getAttribute("usuario"); }
+    public static void calendario(HttpServletRequest r,long inmueble,Long propietario,String ruta) {
+        LocalDate hoy=servicios(r).hoy();
+        try {
+            var mes=co.edu.rentainmuebles.model.CalendarioDisponibilidad.mes(opcional(r,"mes"),hoy);
+            var ocupaciones=new co.edu.rentainmuebles.service.ContenidoInmuebleService().ocupacionesCalendario(inmueble,propietario,hoy);
+            r.setAttribute("calendario",new co.edu.rentainmuebles.model.CalendarioDisponibilidad(mes,hoy,ocupaciones,propietario==null));
+            r.setAttribute("rutaCalendario",ruta);
+        } catch(IllegalArgumentException e) { throw new NegocioException(e.getMessage(),e); }
+    }
     public static String token(HttpSession s) {
         synchronized(s) {
             String token=(String)s.getAttribute("csrf");

@@ -25,6 +25,16 @@ Se redimensionaron y recomprimieron en JPEG: máximo 1600 px de ancho y menos de
 
 `WEB-INF/views/layout/imagenes.jspf` contiene una lista de 13 nombres locales. El índice es `(id - 1) % cantidad`: mismo ID, misma foto, sin tabla ni persistencia nueva. `hero.jpg` se reserva para el hero. Se reutilizan fotos locales como referencias secundarias de la galería 1+4. Para nuevos IDs la lista se repite de forma determinista.
 
+## Interiores ilustrativos
+
+Para completar los interiores de demostración se reutilizan `interior-01.jpg`, `apto-01.jpg` y `apto-02.jpg`, ya acreditadas arriba. `CompletarInterioresDemo --aplicar` agrega hasta tres referencias a cada inmueble que aún no tiene interiores, en una transacción, respetando el límite de diez y sin reemplazar fotos existentes. Es reejecutable: los inmuebles que ya tienen interior se conservan. La galería identifica estas fotos como «INTERIOR · Referencia»; son imágenes ilustrativas y no fotografías verificadas de esos alojamientos. Las fotos reales que cargue el propietario conservan su descripción y clasificación.
+
+```powershell
+java -cp "target/classes;target/lib/*" co.edu.rentainmuebles.verification.CompletarInterioresDemo --aplicar
+```
+
+La herramienta admite el esquema operativo `daynest` y los esquemas UUID de pruebas. No modifica reservas, pagos ni calificaciones. No forma parte del arranque automático.
+
 ## Fuentes e iconografía
 
 - Inter: [proyecto oficial](https://github.com/rsms/inter), [OFL 1.1](https://github.com/google/fonts/blob/main/ofl/inter/OFL.txt). Licencia redistribuida en `assets/fonts/Inter-OFL.txt`.

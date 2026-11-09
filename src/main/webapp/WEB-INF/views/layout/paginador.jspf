@@ -1,11 +1,11 @@
 <%@ page pageEncoding="UTF-8" %>
 <c:if test="${not empty paginacion and paginacion.total gt 0}">
-<nav class="pagination" aria-label="Paginación del listado">
-    <p class="muted">Mostrando <c:out value="${paginacion.desde}"/>–<c:out value="${paginacion.hasta}"/> de <c:out value="${paginacion.total}"/> resultados.</p>
+<nav class="pagination" aria-label="${fn:escapeXml(textos['ui254'])}">
+    <p class="muted"><c:out value="${textos['ui255']}"/> <c:out value="${paginacion.desde}"/>–<c:out value="${paginacion.hasta}"/> <c:out value="${textos['ui237']}"/> <c:out value="${paginacion.total}"/> <c:out value="${textos['ui256']}"/></p>
     <div class="actions">
-        <c:if test="${not empty paginacion.anterior}"><a class="button secondary" href="${fn:escapeXml(paginacion.anterior)}">Anterior</a></c:if>
-        <span>Página <c:out value="${paginacion.numero}"/> de <c:out value="${paginacion.paginas}"/></span>
-        <c:if test="${not empty paginacion.siguiente}"><a class="button secondary" href="${fn:escapeXml(paginacion.siguiente)}">Siguiente</a></c:if>
+        <c:if test="${not empty paginacion.anterior}"><a class="button secondary" href="${fn:escapeXml(paginacion.anterior)}"><c:out value="${textos['ui238']}"/></a></c:if>
+        <span><c:out value="${textos['ui257']}"/> <c:out value="${paginacion.numero}"/> <c:out value="${textos['ui237']}"/> <c:out value="${paginacion.paginas}"/></span>
+        <c:if test="${not empty paginacion.siguiente}"><a class="button secondary" href="${fn:escapeXml(paginacion.siguiente)}"><c:out value="${textos['ui239']}"/></a></c:if>
     </div>
 </nav>
 </c:if>

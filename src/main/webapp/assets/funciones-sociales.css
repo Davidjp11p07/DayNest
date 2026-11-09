@@ -1,4 +1,4 @@
-.photo-label{position:absolute;left:12px;bottom:12px;padding:6px 10px;border-radius:20px;background:#132b2bd9;color:white;font-size:.75rem;font-weight:700}
+.photo-label{position:absolute;left:12px;bottom:12px;padding:6px 10px;border-radius:20px;background:#203044d9;color:white;font-size:.75rem;font-weight:700}
 .gallery button{position:relative}
 .photo-management{margin-top:32px;padding-top:24px;border-top:1px solid var(--line)}
 .owner-photo-grid,.reviews{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-top:20px}
@@ -14,3 +14,46 @@
 .guest-reviews{margin-top:10px;max-width:380px}
 .guest-reviews summary{cursor:pointer;color:var(--green);font-weight:700}
 .guest-reviews .reviews{grid-template-columns:1fr;gap:8px;margin-top:8px}
+.availability{padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:20px 0}
+.availability h3{font-size:1rem;margin:0 0 8px}
+.availability p{font-size:.8rem;margin:8px 0}
+.unavailable-dates{max-height:180px;overflow:auto;margin:12px 0;padding-left:22px;font-size:.85rem;color:var(--error)}
+.unavailable-dates li{padding:4px 0}
+.owner-calendar-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start;margin-top:32px}
+.owner-calendar-layout aside h2{font-size:1.25rem}
+.calendar-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:24px}
+.calendar-heading h3{font-size:1.1rem;margin:0;text-align:center}
+.calendar-heading h3::first-letter{text-transform:uppercase}
+.calendar-nav{display:inline-flex;align-items:center;justify-content:center;width:40px;min-height:40px;border-radius:8px;color:var(--ink);text-decoration:none;flex:none}
+.calendar-nav:hover{background:var(--accent-soft)}
+.calendar-weekdays,.calendar-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.calendar-weekdays{font-size:.72rem;text-align:center;color:var(--muted);margin-bottom:12px}
+.calendar-day{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:70px;padding:8px 2px;border:1px solid transparent;background:#f0f5ed;color:#365d47;border-radius:8px;font-size:.85rem;font-weight:500}
+.calendar-day:hover{background:#e3eddd;border-color:#365d47}
+.calendar-day[data-estado=RESERVADO],.legend-reserved::before{background:#fbeceb;color:#a63239}
+.calendar-day[data-estado=RESERVADO]:hover{background:#f5d8d7;border-color:#a63239}
+.calendar-day[data-estado=BLOQUEADO],.legend-blocked::before{background:#fff3d8;color:#805314;border:1px dashed #b28a43}
+.calendar-day[data-estado=BLOQUEADO]:hover{background:#f6e6bc;border-color:#805314}
+.calendar-day[data-estado=PASADO]{background:#f3f3f1;color:#979b9e;border-color:transparent}
+.calendar-day[aria-current=date]{box-shadow:inset 0 0 0 2px var(--night)}
+.calendar-day.is-selected{outline:2px solid var(--accent);outline-offset:-2px;font-weight:800}
+.calendar-day.in-range{box-shadow:inset 0 0 0 2px #c7444870}
+.calendar-day-state{font-size:.57rem;line-height:1.2;min-height:.7rem}
+.calendar-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:20px;font-size:.72rem}
+.calendar-legend>span{display:inline-flex;align-items:center;gap:6px}
+.calendar-legend>span::before{content:'';width:12px;height:12px;border-radius:3px;display:inline-block}
+.legend-free::before{background:#f0f5ed;border:1px solid #a6bea0}
+.calendar-status{font-size:.78rem;line-height:1.5;margin:16px 0 0}
+.calendar-status.is-error{color:var(--error)}
+.calendar-block-title{margin-top:32px}
+.calendar-blocks{list-style:none;padding:0;margin:0}
+.calendar-blocks li{border-top:1px solid var(--line);padding:16px 0;font-size:.8rem}
+.calendar-blocks p{margin:0 0 8px;overflow-wrap:anywhere}
+.reservation-card .calendar-day{min-height:36px;padding:6px 0;font-size:.74rem;border-radius:5px}
+.reservation-card .calendar-day-state{display:none}
+.reservation-card .calendar-heading{margin-bottom:16px}
+.reservation-card .calendar-heading h3{font-size:.85rem}
+.reservation-card .calendar-legend{gap:8px;font-size:.62rem;margin-top:12px}
+.reservation-card .calendar-status{font-size:.72rem}
+@media(max-width:900px){.owner-calendar-layout{grid-template-columns:minmax(0,1fr) 280px;gap:16px}.owner-calendar{padding:16px}.calendar-day{min-height:60px}}
+@media(max-width:700px){.owner-calendar-layout{grid-template-columns:1fr}.calendar-day{min-height:48px}.calendar-day-state{font-size:.48rem}.calendar-heading{margin-bottom:16px}}

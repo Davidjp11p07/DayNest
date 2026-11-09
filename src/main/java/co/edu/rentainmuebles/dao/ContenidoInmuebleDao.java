@@ -2,6 +2,9 @@ package co.edu.rentainmuebles.dao;
 
 import co.edu.rentainmuebles.model.Calificacion;
 import co.edu.rentainmuebles.model.FotoInmueble;
+import co.edu.rentainmuebles.model.PeriodoEstadia;
+import co.edu.rentainmuebles.model.Ocupacion;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +19,8 @@ public interface ContenidoInmuebleDao {
     boolean yaCalifico(long usuarioId, String rol, long reservaId);
     List<Calificacion> calificacionesDelCliente(long clienteId);
     List<Calificacion> calificacionesInmueble(long inmuebleId);
+    List<PeriodoEstadia> fechasNoDisponibles(long inmuebleId, LocalDate hoy);
+    List<Ocupacion> ocupacionesCalendario(long inmuebleId, Long propietarioId, LocalDate hoy);
 
     record Imagen(String mime, byte[] datos) { }
 }

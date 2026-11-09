@@ -2,37 +2,46 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-<fmt:setLocale value="es_CO"/>
-<!doctype html><html lang="es"><head>
+<fmt:setLocale value="${localeIdioma}"/>
+<!doctype html><html lang="${idioma}"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DayNest · Tu espacio, tus días.</title>
+<title><c:out value="${textos['ui160']}"/></title>
 <link rel="icon" type="image/svg+xml" href="${fn:escapeXml(pageContext.request.contextPath)}/assets/img/daynest-logo.svg">
 <link rel="stylesheet" href="${fn:escapeXml(pageContext.request.contextPath)}/assets/styles.css">
 <link rel="stylesheet" href="${fn:escapeXml(pageContext.request.contextPath)}/assets/daynest.css">
 <link rel="stylesheet" href="${fn:escapeXml(pageContext.request.contextPath)}/assets/funciones-sociales.css">
+<link rel="stylesheet" href="${fn:escapeXml(pageContext.request.contextPath)}/assets/idioma.css">
+<script src="${fn:escapeXml(pageContext.request.contextPath)}/assets/idioma.js" defer></script>
 <script src="${fn:escapeXml(pageContext.request.contextPath)}/assets/formularios.js" defer></script>
 <script src="${fn:escapeXml(pageContext.request.contextPath)}/assets/daynest.js" defer></script>
+<script src="${fn:escapeXml(pageContext.request.contextPath)}/assets/calendario.js" defer></script>
 </head><body>
-<a class="skip-link" href="#contenido">Saltar al contenido</a>
+<a class="skip-link" href="#contenido"><c:out value="${textos['ui161']}"/></a>
 <header class="site-header"><div class="topbar">
-<a class="brand" href="${fn:escapeXml(pageContext.request.contextPath)}/inicio" aria-label="DayNest, inicio"><img src="${fn:escapeXml(pageContext.request.contextPath)}/assets/img/daynest-logo.svg" alt="" width="42" height="42"><b class="brand-word">Day<span>Nest</span></b></a>
-<button class="nav-toggle" type="button" aria-controls="navegacion" aria-expanded="false" aria-label="Abrir menú"><svg class="icon" aria-hidden="true"><use href="${fn:escapeXml(pageContext.request.contextPath)}/assets/img/iconos.svg#menu"/></svg></button>
-<nav id="navegacion" class="main-nav" aria-label="Menú principal">
-<a href="${fn:escapeXml(pageContext.request.contextPath)}/buscar">Explorar alojamientos</a>
+<a class="brand" href="${fn:escapeXml(pageContext.request.contextPath)}/inicio" aria-label="${fn:escapeXml(textos['ui162'])}"><img src="${fn:escapeXml(pageContext.request.contextPath)}/assets/img/daynest-logo.svg" alt="" width="42" height="42"><b class="brand-word">Day<span>Nest</span></b></a>
+<button class="nav-toggle" type="button" aria-controls="navegacion" aria-expanded="false" aria-label="${fn:escapeXml(textos['ui163'])}"><svg class="icon" aria-hidden="true"><use href="${fn:escapeXml(pageContext.request.contextPath)}/assets/img/iconos.svg#menu"/></svg></button>
+<nav id="navegacion" class="main-nav" aria-label="${fn:escapeXml(textos['ui164'])}">
+<a href="${fn:escapeXml(pageContext.request.contextPath)}/buscar"><c:out value="${textos['ui165']}"/></a>
 <div class="nav-actions">
+<form class="language-picker" method="get" aria-label="${fn:escapeXml(textos['language'])}">
+<noscript><c:forEach var="parametro" items="${paramValues}"><c:if test="${parametro.key ne 'lang'}"><c:forEach var="valorParametro" items="${parametro.value}"><input type="hidden" name="${fn:escapeXml(parametro.key)}" value="${fn:escapeXml(valorParametro)}"></c:forEach></c:if></c:forEach></noscript>
+<label for="daynest-language"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M5 6.5h14M5 17.5h14"/></svg><span class="sr-only"><c:out value="${textos['language']}"/></span></label>
+<select id="daynest-language" name="lang"><option value="es" ${idioma eq 'es' ? 'selected' : ''}>ES · Español</option><option value="en" ${idioma eq 'en' ? 'selected' : ''}>EN · English</option></select>
+<noscript><button type="submit"><c:out value="${textos['applyLanguage']}"/></button></noscript>
+</form>
 <c:choose><c:when test="${empty sessionScope.usuario}">
-<a href="${fn:escapeXml(pageContext.request.contextPath)}/registro">Publica tu espacio</a>
-<a href="${fn:escapeXml(pageContext.request.contextPath)}/login">Iniciar sesión</a>
-<a class="nav-join" href="${fn:escapeXml(pageContext.request.contextPath)}/registro">Crear cuenta</a>
+<a href="${fn:escapeXml(pageContext.request.contextPath)}/registro"><c:out value="${textos['ui166']}"/></a>
+<a href="${fn:escapeXml(pageContext.request.contextPath)}/login"><c:out value="${textos['ui167']}"/></a>
+<a class="nav-join" href="${fn:escapeXml(pageContext.request.contextPath)}/registro"><c:out value="${textos['ui168']}"/></a>
 </c:when><c:otherwise>
-<details class="account-menu"><summary><c:out value="${sessionScope.usuario.nombre}"/> · Mi cuenta</summary><div class="account-links">
-<c:if test="${sessionScope.usuario.cliente or sessionScope.usuario.propietario}"><a href="${fn:escapeXml(pageContext.request.contextPath)}/cuenta/perfiles">Mis perfiles</a><a href="${fn:escapeXml(pageContext.request.contextPath)}/cuenta/datos">Mis datos y cuentas</a></c:if>
-<c:if test="${sessionScope.usuario.cliente}"><a href="${fn:escapeXml(pageContext.request.contextPath)}/cliente/reservas">Mis reservas</a><a href="${fn:escapeXml(pageContext.request.contextPath)}/cliente/historial">Historial</a></c:if>
-<c:if test="${sessionScope.usuario.propietario}"><a href="${fn:escapeXml(pageContext.request.contextPath)}/propietario/inmuebles">Mis inmuebles</a><a href="${fn:escapeXml(pageContext.request.contextPath)}/propietario/reservas">Reservas recibidas</a><a href="${fn:escapeXml(pageContext.request.contextPath)}/propietario/giros">Mis giros</a><a href="${fn:escapeXml(pageContext.request.contextPath)}/propietario/ingresos">Mis ingresos</a></c:if>
-<c:if test="${sessionScope.usuario.esAdministrador}"><a href="${fn:escapeXml(pageContext.request.contextPath)}/admin">Panel</a><a href="${fn:escapeXml(pageContext.request.contextPath)}/admin/inmuebles">Rentas</a><a href="${fn:escapeXml(pageContext.request.contextPath)}/admin/reservas">Reservas</a><a href="${fn:escapeXml(pageContext.request.contextPath)}/admin/pagos">Pagos</a><a href="${fn:escapeXml(pageContext.request.contextPath)}/admin/giros">Giros</a><a href="${fn:escapeXml(pageContext.request.contextPath)}/admin/ingresos">Comisiones e ingresos</a><a href="${fn:escapeXml(pageContext.request.contextPath)}/admin/bancos">Bancos</a></c:if>
+<details class="account-menu"><summary><c:out value="${sessionScope.usuario.nombre}"/> <c:out value="${textos['ui169']}"/></summary><div class="account-links">
+<c:if test="${sessionScope.usuario.cliente or sessionScope.usuario.propietario}"><a href="${fn:escapeXml(pageContext.request.contextPath)}/cuenta/perfiles"><c:out value="${textos['ui113']}"/></a><a href="${fn:escapeXml(pageContext.request.contextPath)}/cuenta/datos"><c:out value="${textos['ui100']}"/></a></c:if>
+<c:if test="${sessionScope.usuario.cliente}"><a href="${fn:escapeXml(pageContext.request.contextPath)}/cliente/reservas"><c:out value="${textos['ui098']}"/></a><a href="${fn:escapeXml(pageContext.request.contextPath)}/cliente/historial"><c:out value="${textos['ui170']}"/></a></c:if>
+<c:if test="${sessionScope.usuario.propietario}"><a href="${fn:escapeXml(pageContext.request.contextPath)}/propietario/inmuebles"><c:out value="${textos['ui171']}"/></a><a href="${fn:escapeXml(pageContext.request.contextPath)}/propietario/reservas"><c:out value="${textos['ui172']}"/></a><a href="${fn:escapeXml(pageContext.request.contextPath)}/propietario/giros"><c:out value="${textos['ui173']}"/></a><a href="${fn:escapeXml(pageContext.request.contextPath)}/propietario/ingresos"><c:out value="${textos['ui174']}"/></a></c:if>
+<c:if test="${sessionScope.usuario.esAdministrador}"><a href="${fn:escapeXml(pageContext.request.contextPath)}/admin"><c:out value="${textos['ui175']}"/></a><a href="${fn:escapeXml(pageContext.request.contextPath)}/admin/inmuebles"><c:out value="${textos['ui176']}"/></a><a href="${fn:escapeXml(pageContext.request.contextPath)}/admin/reservas"><c:out value="${textos['ui046']}"/></a><a href="${fn:escapeXml(pageContext.request.contextPath)}/admin/pagos"><c:out value="${textos['ui047']}"/></a><a href="${fn:escapeXml(pageContext.request.contextPath)}/admin/giros"><c:out value="${textos['ui048']}"/></a><a href="${fn:escapeXml(pageContext.request.contextPath)}/admin/ingresos"><c:out value="${textos['ui177']}"/></a><a href="${fn:escapeXml(pageContext.request.contextPath)}/admin/bancos"><c:out value="${textos['ui178']}"/></a></c:if>
 
-<form method="post" action="${fn:escapeXml(pageContext.request.contextPath)}/salir"><input type="hidden" name="csrf" value="${fn:escapeXml(sessionScope.csrf)}"><button class="link-button" type="submit">Cerrar sesión</button></form>
+<form method="post" action="${fn:escapeXml(pageContext.request.contextPath)}/salir"><input type="hidden" name="csrf" value="${fn:escapeXml(sessionScope.csrf)}"><button class="link-button" type="submit"><c:out value="${textos['ui179']}"/></button></form>
 </div></details></c:otherwise></c:choose>
 </div></nav></div></header><main id="contenido">
-<c:if test="${not empty sessionScope.flashMensaje}"><div role="status" class="alert ${sessionScope.flashTipo eq 'error' ? 'error' : ''}"><c:out value="${sessionScope.flashMensaje}"/></div><c:remove var="flashMensaje" scope="session"/><c:remove var="flashTipo" scope="session"/></c:if>
-<c:if test="${not empty error}"><div class="alert error" role="alert"><c:out value="${error}"/></div></c:if>
+<c:if test="${not empty sessionScope.flashMensaje}"><div role="status" class="alert ${sessionScope.flashTipo eq 'error' ? 'error' : ''}"><c:out value="${traductor.traducir(sessionScope.flashMensaje)}"/></div><c:remove var="flashMensaje" scope="session"/><c:remove var="flashTipo" scope="session"/></c:if>
+<c:if test="${not empty error}"><div class="alert error" role="alert"><c:out value="${traductor.traducir(error)}"/></div></c:if>

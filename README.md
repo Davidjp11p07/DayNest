@@ -38,7 +38,7 @@ java -cp "target/classes;target/lib/*" co.edu.rentainmuebles.verification.Inicia
 java -cp "target/classes;target/lib/*" co.edu.rentainmuebles.verification.InspeccionarBD
 ```
 
-El inicializador instala las 19 tablas desde `sql/instalacion/schema.sql` y rechaza un esquema existente. No ejecutes inicialización, reinicio o reversión sobre una instalación con datos. La [guía SQL](sql/README.md) distingue instalación, demostración, migraciones y mantenimiento.
+El inicializador instala las 21 tablas desde `sql/instalacion/schema.sql`, incluidas fotos y calificaciones, y rechaza un esquema existente. No ejecutes inicialización, reinicio o reversión sobre una instalación con datos. La [guía SQL](sql/README.md) distingue instalación, demostración, migraciones y mantenimiento.
 
 Las utilidades de instalación y migración permanecen en `target/classes` para usarlas por consola. Se excluyen del archivo de despliegue `target/DayNest.war`.
 

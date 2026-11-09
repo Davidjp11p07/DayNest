@@ -1,11 +1,11 @@
 <%@ page pageEncoding="UTF-8" %>
-<nav class="active-filters" aria-label="Filtros activos">
+<nav class="active-filters" aria-label="${fn:escapeXml(textos['ui189'])}">
 <c:forTokens var="filtro" items="paisId,divisionId,tipo,rural,mar" delims=","><c:if test="${not empty param[filtro]}">
 <c:url var="quitarFiltro" value="/buscar"><c:forTokens var="criterio" items="ciudad,ciudadId,paisId,divisionId,entrada,salida,minimo,maximo,capacidad,tipo,rural,mar" delims=","><c:if test="${criterio ne filtro and not empty param[criterio]}"><c:param name="${criterio}" value="${param[criterio]}"/></c:if></c:forTokens></c:url>
 <a class="filter-chip" href="${fn:escapeXml(quitarFiltro)}"><c:choose>
-<c:when test="${filtro eq 'tipo'}">Tipo: <c:out value="${param.tipo}"/></c:when>
-<c:when test="${filtro eq 'rural'}">En el campo: <c:out value="${param.rural eq 'true' ? 'sí' : 'no'}"/></c:when>
-<c:when test="${filtro eq 'mar'}">Junto al mar: <c:out value="${param.mar eq 'true' ? 'sí' : 'no'}"/></c:when>
-<c:when test="${filtro eq 'paisId'}">País: <c:out value="${paisActivo}"/></c:when>
-<c:otherwise>Región: <c:out value="${divisionActiva}"/></c:otherwise>
-</c:choose><span aria-hidden="true"> ×</span><span class="sr-only"> — quitar filtro</span></a></c:if></c:forTokens></nav>
+<c:when test="${filtro eq 'tipo'}"><c:out value="${textos['ui190']}"/> <c:out value="${empty textos[param.tipo.toString()] ? param.tipo : textos[param.tipo.toString()]}"/></c:when>
+<c:when test="${filtro eq 'rural'}"><c:out value="${textos['ui191']}"/> <c:out value="${param.rural eq 'true' ? textos['yes'] : textos['no']}"/></c:when>
+<c:when test="${filtro eq 'mar'}"><c:out value="${textos['ui192']}"/> <c:out value="${param.mar eq 'true' ? textos['yes'] : textos['no']}"/></c:when>
+<c:when test="${filtro eq 'paisId'}"><c:out value="${textos['ui193']}"/> <c:out value="${paisActivo}"/></c:when>
+<c:otherwise><c:out value="${textos['ui194']}"/> <c:out value="${divisionActiva}"/></c:otherwise>
+</c:choose><span aria-hidden="true"> <c:out value="${textos['ui195']}"/></span><span class="sr-only"> <c:out value="${textos['ui196']}"/></span></a></c:if></c:forTokens></nav>

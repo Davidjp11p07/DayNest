@@ -1,0 +1,13 @@
+<%@ page pageEncoding="UTF-8" %>
+<%@ include file="../layout/cabecera.jspf" %>
+<a class="breadcrumb" href="${fn:escapeXml(pageContext.request.contextPath)}/propietario/inmuebles"><c:out value="${textos['ui308']}"/></a>
+<h1><c:out value="${textos['ui309']}"/></h1><p class="muted"><c:out value="${inmueble.titulo}"/> · <c:out value="${inmueble.ciudad}"/></p>
+<div class="owner-calendar-layout" data-calendar-scope><div class="panel owner-calendar"><%@ include file="../layout/calendario.jspf" %></div>
+<aside class="panel"><h2><c:out value="${textos['ui310']}"/></h2><p class="muted"><c:out value="${textos['ui311']}"/></p>
+<form class="form-stack" method="post" action="${fn:escapeXml(pageContext.request.contextPath)}/propietario/bloquear"><input type="hidden" name="csrf" value="${fn:escapeXml(sessionScope.csrf)}"><input type="hidden" name="inmuebleId" value="${inmueble.id}"><input type="hidden" name="volverCalendario" value="true"><input type="hidden" name="mes" value="${calendario.mes}">
+<div class="field"><label for="bloqueo-desde"><c:out value="${textos['ui142']}"/></label><input id="bloqueo-desde" data-calendar-start name="entrada" type="date" min="${hoy}" value="${fn:escapeXml(form.entrada)}" required></div>
+<div class="field"><label for="bloqueo-hasta"><c:out value="${textos['ui312']}"/></label><input id="bloqueo-hasta" data-calendar-end name="salida" type="date" min="${minEntrada}" value="${fn:escapeXml(form.salida)}" required></div>
+<div class="field"><label for="bloqueo-razon"><c:out value="${textos['ui303']}"/></label><input id="bloqueo-razon" name="motivo" maxlength="250" required></div><button type="submit"><c:out value="${textos['ui313']}"/></button></form>
+<h3 class="calendar-block-title"><c:out value="${textos['ui314']}"/></h3><c:choose><c:when test="${empty bloqueos}"><p class="muted"><c:out value="${textos['ui315']}"/></p></c:when><c:otherwise><ul class="calendar-blocks"><c:forEach var="b" items="${bloqueos}"><li><p><c:out value="${b.ocupacion.inicio}"/> &#8594; <c:out value="${b.ocupacion.fin}"/> <c:out value="${textos['ui316']}"/></p><p class="muted"><c:out value="${b.motivo}"/></p><form method="post" action="${fn:escapeXml(pageContext.request.contextPath)}/propietario/liberar"><input type="hidden" name="csrf" value="${fn:escapeXml(sessionScope.csrf)}"><input type="hidden" name="id" value="${b.ocupacion.id}"><input type="hidden" name="inmuebleId" value="${inmueble.id}"><input type="hidden" name="volverCalendario" value="true"><input type="hidden" name="mes" value="${calendario.mes}"><button class="secondary" type="submit"><c:out value="${textos['ui317']}"/></button></form></li></c:forEach></ul></c:otherwise></c:choose>
+</aside></div>
+<%@ include file="../layout/pie.jspf" %>

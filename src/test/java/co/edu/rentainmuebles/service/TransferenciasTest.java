@@ -78,6 +78,7 @@ class TransferenciasTest extends SoportePostgres {
   assertThrows(SQLException.class,()->sql("UPDATE movimiento_pago SET cuenta_bancaria_pactada='{}' WHERE id_movimiento="+p.getId()));
  }
  @Test void migracionNoInventaMetodoHistoricoYEsReejecutable()throws Exception {
+  try {
   // Reponer las dos funciones anteriores a esta mejora SOLO en el esquema UUID aislado.
   try(Connection c=ConexionBD.abrir();Statement s=c.createStatement()){
    assertTrue(c.getSchema().matches("renta_test_[a-f0-9]{32}"));
@@ -93,6 +94,9 @@ class TransferenciasTest extends SoportePostgres {
   }
   assertNull(dato(p.getId(),"metodo"));assertNull(pagos.buscarPorId(p.getId()).orElseThrow().getMetodo());
   assertEquals("No registrado (historico)",pagos.buscarPorId(p.getId()).orElseThrow().getMetodoRegistrado());
+  } finally {
+   try(Connection c=ConexionBD.abrir()){MigrarPagosTransferencia.migrar(c);}
+  }
  }
  @Test void dobleEnvioNoDuplicaCobro() {
   var r=reservaFutura();servicios.pagos.registrarTransferencia(cliente.getId(),r.getId(),null,otra());

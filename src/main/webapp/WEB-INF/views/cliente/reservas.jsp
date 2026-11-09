@@ -1,4 +1,4 @@
 <%@ page pageEncoding="UTF-8" %>
 <%@ include file="../layout/cabecera.jspf" %>
-<h1>Mis reservas</h1><p class="muted">El pago se realiza automáticamente al reservar. Un pago fallado deja las fechas disponibles. Puedes cancelar antes de la entrada con devolución simulada.</p><%@ include file="../layout/reservas.jspf" %>
+<h1><c:out value="${textos['ui098']}"/></h1><p class="muted"><c:out value="${textos['ui099']}"/></p><%@ include file="../layout/reservas.jspf" %>
 <%@ include file="../layout/pie.jspf" %>

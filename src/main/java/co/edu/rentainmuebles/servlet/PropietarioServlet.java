@@ -23,7 +23,14 @@ public final class PropietarioServlet extends HttpServlet {
             r.setAttribute("ciudades",Web.servicios(r).catalogo.ciudades());
             switch(ruta) {
                 case "/inmuebles" -> { r.setAttribute("inmuebles",Web.servicios(r).inmuebles.listarPropios(usuario)); Web.vista(r,p,"propietario/inmuebles"); }
-                case "/bloqueos" -> { r.setAttribute("inmuebles",Web.servicios(r).inmuebles.listarPropios(usuario)); r.setAttribute("bloqueos",new co.edu.rentainmuebles.service.BloqueoService().listar(usuario)); Web.vista(r,p,"propietario/bloqueos"); }
+                case "/bloqueos" -> { r.setAttribute("inmueblesDisponibles",Web.servicios(r).inmuebles.listarPropios(usuario)); r.setAttribute("bloqueos",new co.edu.rentainmuebles.service.BloqueoService().listar(usuario)); Web.vista(r,p,"propietario/bloqueos"); }
+                case "/calendario" -> {
+                    long id=Web.id(r,"id");
+                    r.setAttribute("inmueble",Web.servicios(r).inmuebles.listarPropios(usuario).stream().filter(i->i.getId()==id).findFirst().orElseThrow(()->new NegocioException("El inmueble no pertenece al propietario.")));
+                    Web.calendario(r,id,usuario,"/propietario/calendario");
+                    r.setAttribute("bloqueos",new co.edu.rentainmuebles.service.BloqueoService().listar(usuario).stream().filter(b->b.ocupacion().inmuebleId()==id && b.ocupacion().activa()).toList());
+                    Web.vista(r,p,"propietario/calendario");
+                }
                 case "/publicar" -> Web.vista(r,p,"propietario/formulario");
                 case "/editar" -> { long id=Web.id(r,"id"); r.setAttribute("inmueble",Web.servicios(r).inmuebles.listarPropios(usuario).stream().filter(i->i.getId()==id).findFirst().orElseThrow(()->new NegocioException("El inmueble no pertenece al propietario."))); r.setAttribute("fotosPropias",contenido().fotosPropias(usuario,id)); Web.vista(r,p,"propietario/formulario"); }
                 case "/reservas" -> { r.setAttribute("rolReservas","PROPIETARIO");var reservas=Web.servicios(r).reservas.listarRecibidas(usuario);r.setAttribute("reservas",reservas);var contenido=contenido();var calificados=new java.util.HashMap<Long,Boolean>();var calificacionesClientes=new java.util.HashMap<Long,java.util.List<Calificacion>>();for(Reserva reserva:reservas){if(reserva.getEstado()==EstadoReserva.FINALIZADA)calificados.put(reserva.getId(),contenido.yaCalifico(usuario,"PROPIETARIO",reserva.getId()));calificacionesClientes.computeIfAbsent(reserva.getCliente().getId(),contenido::calificacionesDelCliente);}r.setAttribute("calificados",calificados);r.setAttribute("calificacionesClientes",calificacionesClientes);Web.vista(r,p,"propietario/reservas"); }
@@ -45,8 +52,8 @@ public final class PropietarioServlet extends HttpServlet {
             }
             if("/foto/eliminar".equals(ruta)) {long id=Web.id(r,"id"),foto=Web.id(r,"fotoId");contenido().eliminarFoto(usuario,foto);Web.flash(r,"exito","Foto eliminada.");Web.redirect(r,p,"/propietario/editar?id="+id);return;}
             if("/calificar".equals(ruta)){contenido().calificar(usuario,"PROPIETARIO",Web.id(r,"id"),Web.requerido(r,"puntuacion"),Web.opcional(r,"comentario")==null?"":Web.opcional(r,"comentario"));Web.flash(r,"exito","Gracias por calificar al huésped.");Web.redirect(r,p,"/propietario/reservas");return;}
-            if("/bloquear".equals(ruta)) { new co.edu.rentainmuebles.service.BloqueoService().crear(usuario,Web.id(r,"inmuebleId"),Web.fecha(r,"entrada"),Web.fecha(r,"salida"),Web.texto(r,"motivo")); Web.flash(r,"exito","Bloqueo registrado."); Web.redirect(r,p,"/propietario/bloqueos"); return; }
-            else if("/liberar".equals(ruta)) { new co.edu.rentainmuebles.service.BloqueoService().liberar(usuario,Web.id(r,"id")); Web.flash(r,"exito","Fechas liberadas."); Web.redirect(r,p,"/propietario/bloqueos"); return; }
+            if("/bloquear".equals(ruta)) { new co.edu.rentainmuebles.service.BloqueoService().crear(usuario,Web.id(r,"inmuebleId"),Web.fecha(r,"entrada"),Web.fecha(r,"salida"),Web.texto(r,"motivo")); Web.flash(r,"exito","Bloqueo registrado."); Web.redirect(r,p,destinoBloqueos(r)); return; }
+            else if("/liberar".equals(ruta)) { new co.edu.rentainmuebles.service.BloqueoService().liberar(usuario,Web.id(r,"id")); Web.flash(r,"exito","Fechas liberadas."); Web.redirect(r,p,destinoBloqueos(r)); return; }
             else if("/desactivar".equals(ruta)) { Web.servicios(r).inmuebles.desactivar(usuario,Web.id(r,"id")); Web.flash(r,"exito","Inmueble desactivado. Se conservan sus reservas."); }
             else if("/publicar".equals(ruta)||"/editar".equals(ruta)) {
                 if("/publicar".equals(ruta)) Web.servicios(r).inmuebles.publicar(usuario,Web.texto(r,"titulo"),(Web.opcional(r,"ciudadId")==null?Web.texto(r,"ciudad"):"id:"+Web.id(r,"ciudadId")),Web.texto(r,"direccion"),Web.texto(r,"descripcion"),Web.requerido(r,"capacidad"),Web.dinero(r,"precio"),Web.opcional(r,"tipo"),Web.booleanoOpcional(r,"esRural"),Web.booleanoOpcional(r,"cercaMar"),Web.dinero(r,"area"),Web.entero(r,"habitaciones"));
@@ -55,6 +62,7 @@ public final class PropietarioServlet extends HttpServlet {
             } else { p.sendError(404); return; }
         } catch(NegocioException e) {
             String ruta=r.getPathInfo();
+            if("/bloquear".equals(ruta)||"/liberar".equals(ruta)){Web.errorFormulario(r,e);Web.redirect(r,p,destinoBloqueos(r));return;}
             if("/foto/subir".equals(ruta)||"/foto/eliminar".equals(ruta)){Web.errorFormulario(r,e);String id=Web.opcional(r,"id");Web.redirect(r,p,id==null?"/propietario/inmuebles":"/propietario/editar?id="+id);return;}
             if("/calificar".equals(ruta)){Web.errorFormulario(r,e);Web.redirect(r,p,"/propietario/reservas");return;}
             if("/publicar".equals(ruta)||"/editar".equals(ruta)) {
@@ -66,7 +74,12 @@ public final class PropietarioServlet extends HttpServlet {
         }
         Web.redirect(r,p,"/propietario/inmuebles");
     }
-    private static co.edu.rentainmuebles.dao.jdbc.ContenidoInmuebleDaoJdbc contenido(){return new co.edu.rentainmuebles.dao.jdbc.ContenidoInmuebleDaoJdbc();}
+    private static String destinoBloqueos(HttpServletRequest r) {
+        String id=Web.opcional(r,"inmuebleId"),mes=Web.opcional(r,"mes");
+        if(!"true".equals(Web.opcional(r,"volverCalendario"))||id==null||!id.matches("[1-9][0-9]{0,17}"))return "/propietario/bloqueos";
+        return "/propietario/calendario?id="+id+(mes==null?"":"&mes="+java.net.URLEncoder.encode(mes,java.nio.charset.StandardCharsets.UTF_8));
+    }
+    private static co.edu.rentainmuebles.service.ContenidoInmuebleService contenido(){return new co.edu.rentainmuebles.service.ContenidoInmuebleService();}
     private static String tipoImagen(byte[] datos) throws IOException {
         try(ImageInputStream stream=ImageIO.createImageInputStream(new java.io.ByteArrayInputStream(datos))) {
             if(stream==null)throw new NegocioException("El archivo seleccionado no es una imagen válida.");

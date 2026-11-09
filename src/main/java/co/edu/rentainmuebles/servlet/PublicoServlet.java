@@ -8,12 +8,15 @@ import java.io.IOException;
 public final class PublicoServlet extends HttpServlet {
     @Override protected void doGet(HttpServletRequest r,HttpServletResponse p) throws ServletException,IOException {
         String ruta=r.getServletPath();
-        var contenido=new co.edu.rentainmuebles.dao.jdbc.ContenidoInmuebleDaoJdbc();
+        var contenido=new co.edu.rentainmuebles.service.ContenidoInmuebleService();
         if("/foto".equals(ruta)) {
+            try {
             var foto=contenido.imagenPublica(Web.id(r,"id"));
             if(foto.isEmpty()){p.sendError(404);return;}
             p.setContentType(foto.get().mime());p.setHeader("X-Content-Type-Options","nosniff");p.setHeader("Cache-Control","public, max-age=3600");
-            p.getOutputStream().write(foto.get().datos());return;
+            p.getOutputStream().write(foto.get().datos());
+            } catch(NegocioException e) { p.sendError(404,"La foto no está disponible."); }
+            return;
         }
         r.setAttribute("ciudades",Web.servicios(r).catalogo.ciudades());
         r.setAttribute("paises",Web.servicios(r).catalogo.paises());
@@ -21,6 +24,7 @@ public final class PublicoServlet extends HttpServlet {
         if("/inmueble".equals(ruta)) {
             try {
                 long id=Web.id(r,"id");r.setAttribute("inmueble",Web.servicios(r).inmuebles.obtenerPublicado(id));
+                Web.calendario(r,id,null,"/inmueble");
                 var calificaciones=contenido.calificacionesInmueble(id);r.setAttribute("fotosInmueble",contenido.fotosPublicas(id));r.setAttribute("calificaciones",calificaciones);
                 r.setAttribute("promedioCalificacion",calificaciones.isEmpty()?null:calificaciones.stream().mapToInt(co.edu.rentainmuebles.model.Calificacion::getPuntuacion).average().orElse(0));
                 Web.vista(r,p,"publico/detalle");

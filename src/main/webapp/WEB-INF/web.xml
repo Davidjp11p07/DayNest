@@ -2,10 +2,12 @@
 <web-app xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd" version="6.0">
  <filter><filter-name>utf8</filter-name><filter-class>co.edu.rentainmuebles.filter.CodificacionFilter</filter-class></filter>
+ <filter><filter-name>idioma</filter-name><filter-class>co.edu.rentainmuebles.filter.IdiomaFilter</filter-class></filter>
  <filter><filter-name>csrf</filter-name><filter-class>co.edu.rentainmuebles.filter.CsrfFilter</filter-class></filter>
  <filter><filter-name>sesion</filter-name><filter-class>co.edu.rentainmuebles.filter.AutenticacionFilter</filter-class></filter>
  <filter><filter-name>rol</filter-name><filter-class>co.edu.rentainmuebles.filter.AutorizacionFilter</filter-class></filter>
  <filter-mapping><filter-name>utf8</filter-name><url-pattern>/*</url-pattern><dispatcher>REQUEST</dispatcher><dispatcher>ERROR</dispatcher></filter-mapping>
+ <filter-mapping><filter-name>idioma</filter-name><url-pattern>/*</url-pattern><dispatcher>REQUEST</dispatcher><dispatcher>ERROR</dispatcher></filter-mapping>
  <filter-mapping><filter-name>csrf</filter-name><url-pattern>/*</url-pattern></filter-mapping>
  <filter-mapping><filter-name>sesion</filter-name><url-pattern>/admin</url-pattern><url-pattern>/admin/*</url-pattern><url-pattern>/cliente</url-pattern><url-pattern>/cliente/*</url-pattern><url-pattern>/propietario</url-pattern><url-pattern>/propietario/*</url-pattern><url-pattern>/cuenta/*</url-pattern></filter-mapping>
  <filter-mapping><filter-name>rol</filter-name><url-pattern>/admin</url-pattern><url-pattern>/admin/*</url-pattern><url-pattern>/cliente</url-pattern><url-pattern>/cliente/*</url-pattern><url-pattern>/propietario</url-pattern><url-pattern>/propietario/*</url-pattern></filter-mapping>

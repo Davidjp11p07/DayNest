@@ -24,7 +24,9 @@ public final class MigrarPagosTransferencia {
    try(Statement s=c.createStatement();ResultSet r=s.executeQuery("SELECT table_name FROM information_schema.tables WHERE table_schema=current_schema() AND table_type='BASE TABLE' ORDER BY table_name")){
     while(r.next()){String tabla=r.getString(1);if(!tabla.matches("[a-z_]+"))throw new IllegalArgumentException("Identificador no permitido");tablas.add(tabla);}
    }
-   if(tablas.size()!=19||!tablas.contains("configuracion_comision"))throw new IllegalStateException("Complete primero la migracion financiera.");
+   Set<String> base=Set.of("usuario","clientes","propietarios","administrador","paises","division_administrativa","ciudades","inmuebles","ocupacion","renta","bloqueo","movimiento_pago","giro","banco","asocia","vincula","relaciona","configuracion_comision","liquidacion_giro");
+   Set<String> admitidas=new HashSet<>(base);admitidas.addAll(Set.of("inmueble_foto","calificacion_reserva"));
+   if(!tablas.containsAll(base)||!admitidas.containsAll(tablas))throw new IllegalStateException("Complete primero la migracion financiera.");
    try(Statement s=c.createStatement()){s.execute("LOCK TABLE "+String.join(",",tablas)+" IN ACCESS EXCLUSIVE MODE");}
    var antes=huellas(c,tablas);
    try(Statement s=c.createStatement()){s.execute(Files.readString(Path.of("sql/migraciones/pagos-transferencia.sql")));}
@@ -37,7 +39,7 @@ public final class MigrarPagosTransferencia {
   try {
    System.out.println("Respaldo: "+MigrarModelo.respaldar());
    try(Connection c=ConexionBD.abrir()){migrar(c);migrar(c);}
-   System.out.println("Funciones actualizadas; huellas de las 19 tablas conservadas; migracion reejecutable.");
+   System.out.println("Funciones actualizadas; huellas de todas las tablas conservadas; migracion reejecutable.");
   }finally{ConexionBD.cerrar();}
  }
 }

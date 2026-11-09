@@ -34,7 +34,8 @@ with sync_playwright() as pw:
  cop=page.locator('[data-resumen-moneda=COP]');eur=page.locator('[data-resumen-moneda=EUR]')
  assert digitos(cop.locator('[data-importe=comision-liquidada]').inner_text())=='18900000'
  assert digitos(eur.locator('[data-importe=comision-liquidada]').inner_text())=='6000'
- assert digitos(cop.locator('p').filter(has_text='Comisiones pendientes estimadas:').inner_text())=='6000000'
+ # Las 21 reservas de paginación también se cobran al crearlas; todas aportan comisión pendiente.
+ assert digitos(cop.locator('p').filter(has_text='Comisiones pendientes estimadas:').inner_text())==str((21 * 300000 + 200000) * 30)
  checks.append('Comisiones liquidadas separadas de pendientes y de EUR')
  for width in [390,768,1440]:
   page.set_viewport_size({'width':width,'height':950});assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'),width
