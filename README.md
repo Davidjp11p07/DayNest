@@ -1,6 +1,6 @@
 # DayNest — Tu espacio, tus días
 
-Aplicación académica web con Java 17, Maven, Jakarta Servlet/JSP/JSTL, JDBC y PostgreSQL. Usa 10 tablas del modelo del profesor y 11 tablas auxiliares. Consulta el [modelo implementado](docs/MODELO_DEFINITIVO.md) y el [esquema relacional](docs/esquema_relacional.md).
+Aplicación académica web con Java 17, Maven, Jakarta Servlet/JSP/JSTL, JDBC y PostgreSQL. Usa 10 tablas del modelo del pricipal y 11 tablas auxiliares. Consulta el [modelo implementado](docs/MODELO_DEFINITIVO.md) y el [esquema relacional](docs/esquema_relacional.md).
 
 Los pagos, devoluciones y giros son simulados. No se mueve dinero real ni se convierten monedas.
 
@@ -99,13 +99,3 @@ JUnit crea esquemas UUID temporales y los retira al terminar. No reinicia la bas
 
 Los recorridos de `src/test/browser` requieren un Jetty de pruebas y un esquema HTTP UUID; comprueban el aislamiento antes de operar. Consulta [sus instrucciones](src/test/browser/README.md).
 
-## Documentación
-
-- [Modelo implementado](docs/MODELO_DEFINITIVO.md), [esquema relacional](docs/esquema_relacional.md) y [adaptación del ER](docs/ADAPTACION_SVG.md).
-- [Guion de demostración](docs/GUION_DEMO.md) y [giros automáticos](docs/GIROS_AUTOMATICOS.md).
-- [Diagramas de la implementación](docs/diagramas/README.md).
-- [Casos de uso corregidos para el profesor](docs/diagramas/profesor/DIAGRAMA_CASOS_USO.md). Son una especificación académica independiente del código.
-- [Créditos de imágenes](docs/diseno/CREDITOS_IMAGENES.md).
-- [Auditoría y limpieza](docs/LIMPIEZA.md).
-
-La base reducida de entrega al profesor está fuera de este proyecto; no reemplaza la base de DayNest.
