@@ -1,6 +1,6 @@
 # DayNest — Tu espacio, tus días
 
-Aplicación académica web con Java 17, Maven, Jakarta Servlet/JSP/JSTL, JDBC y PostgreSQL. Usa 10 tablas del modelo del pricipal y 11 tablas auxiliares. Consulta el [modelo implementado](docs/MODELO_DEFINITIVO.md) y el [esquema relacional](docs/esquema_relacional.md).
+Aplicación académica web con Java 17, Maven, Jakarta Servlet/JSP/JSTL, JDBC y PostgreSQL. Usa 10 tablas del modelo del principal y 11 tablas auxiliares. Consulta el [modelo implementado](docs/MODELO_DEFINITIVO.md) y el [esquema relacional](docs/esquema_relacional.md).
 
 Los pagos, devoluciones y giros son simulados. No se mueve dinero real ni se convierten monedas.
 
