@@ -43,6 +43,22 @@ abstract class ServicioBase {
     protected static Reserva reserva(UnidadTrabajoDao.Daos d, long id) {
         return d.reservas().buscarPorIdParaActualizar(id(id)).orElseThrow(() -> new NegocioException("La reserva no existe."));
     }
+    protected boolean comprometeEstadia(Reserva reserva) {
+        if (!reserva.getPeriodo().getSalida().isAfter(hoy())) return false;
+        return switch (reserva.getEstado()) {
+            case CONFIRMADA -> true;
+            case PENDIENTE_PAGO -> reserva.getExpiraEn().toInstant().isAfter(reloj.instant());
+            default -> false;
+        };
+    }
+
+    protected void retirarInmueble(UnidadTrabajoDao.Daos d, long inmuebleId) {
+        if (d.reservas().buscarPorInmueble(inmuebleId).stream().anyMatch(this::comprometeEstadia)) {
+            throw new NegocioException("Hay reservas vigentes. El inmueble puede desactivarse cuando terminen o se cancelen.");
+        }
+        d.inmuebles().desactivar(inmuebleId);
+    }
+
     protected LocalDate hoy() { return LocalDate.now(reloj); }
     protected LocalDateTime ahora() { return LocalDateTime.now(reloj); }
     protected static void propia(Reserva r, long clienteId) {

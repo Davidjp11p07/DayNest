@@ -24,7 +24,7 @@ public final class AdministracionServiceImpl extends ServicioBase implements Adm
         return ejecutar(d -> { actor(d,administradorId,Rol.ADMINISTRADOR); return d.giros().listar().stream().filter(g -> estado == null || g.getReserva().getEstado() == estado).toList(); });
     }
     @Override public void desactivarInmueble(long administradorId, long inmuebleId) {
-        ejecutar(d -> { actor(d,administradorId,Rol.ADMINISTRADOR); inmueble(d,inmuebleId); d.inmuebles().desactivar(inmuebleId); return null; });
+        ejecutar(d -> { actor(d,administradorId,Rol.ADMINISTRADOR); inmueble(d,inmuebleId); retirarInmueble(d,inmuebleId); return null; });
     }
     @Override public void cancelarReserva(long administradorId, long reservaId) {
         ejecutar(d -> { actor(d,administradorId,Rol.ADMINISTRADOR); cancelarPendiente(d,reserva(d,reservaId)); return null; });

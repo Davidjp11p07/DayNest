@@ -17,6 +17,10 @@ public final class PagoServiceImpl extends ServicioBase implements PagoService {
     @Override public Pago registrarTransferencia(long clienteId,long reservaId,String referencia,CuentaBancaria cuentaOcasional) {
         return ejecutar(d -> {
             actor(d,clienteId,Rol.CLIENTE); Reserva r = reserva(d,reservaId); propia(r,clienteId);
+            Inmueble alojamiento = inmueble(d, r.getInmueble().getId());
+            if (alojamiento.getEstado() != EstadoInmueble.PUBLICADO || !alojamiento.getPropietario().isActivo()) {
+                throw new NegocioException("El inmueble ya no admite pagos de reservas pendientes.");
+            }
             if(!r.getExpiraEn().toInstant().isAfter(reloj.instant()))throw new NegocioException("La reserva venció; cree una nueva.");
             if (r.getEstado() != EstadoReserva.PENDIENTE_PAGO) { throw new NegocioException("Solo se pueden pagar reservas pendientes."); }
             if (!r.getPeriodo().getEntrada().isAfter(hoy())) { throw new NegocioException("El pago debe realizarse antes del día de entrada."); }

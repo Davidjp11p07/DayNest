@@ -41,13 +41,13 @@ public final class InmuebleServiceImpl extends ServicioBase implements InmuebleS
         return ejecutar(d -> {
             Propietario p = actor(d,propietarioId,Rol.PROPIETARIO).getPropietario();
             Inmueble i = inmueble(d,inmuebleId); pertenece(i,propietarioId);
-            if(d.reservas().buscarPorInmueble(inmuebleId).stream().anyMatch(r->r.getHuespedes()>capacidad && r.getPeriodo().getSalida().isAfter(hoy()) && r.getEstado()!=EstadoReserva.CANCELADA && r.getEstado()!=EstadoReserva.EXPIRADA))
+            if(d.reservas().buscarPorInmueble(inmuebleId).stream().anyMatch(r->r.getHuespedes()>capacidad && comprometeEstadia(r)))
                 throw new NegocioException("La capacidad no puede ser menor que los huéspedes de reservas existentes.");
             return d.inmuebles().actualizar(new Inmueble(i.getId(),p,titulo,new co.edu.rentainmuebles.dao.jdbc.CiudadDaoJdbc().resolver(ciudad),direccion,descripcion,capacidad,precio,i.getEstado(),conservar?i.getTipo():tipo,i.getMoneda(),conservar?i.getEsRural():rural,conservar?i.getCercaMar():mar).conDetalles(conservarDetalles?i.getAreaM2():area,conservarDetalles?i.getHabitaciones():habitaciones));
         });
     }
     @Override public void desactivar(long propietarioId, long inmuebleId) {
-        ejecutar(d -> { actor(d,propietarioId,Rol.PROPIETARIO); pertenece(inmueble(d,inmuebleId),propietarioId); d.inmuebles().desactivar(inmuebleId); return null; });
+        ejecutar(d -> { actor(d,propietarioId,Rol.PROPIETARIO); pertenece(inmueble(d,inmuebleId),propietarioId); retirarInmueble(d,inmuebleId); return null; });
     }
     @Override public List<Inmueble> listarPropios(long propietarioId) {
         return ejecutar(d -> { actor(d,propietarioId,Rol.PROPIETARIO); return d.inmuebles().buscarPorPropietario(propietarioId); });

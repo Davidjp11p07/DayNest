@@ -39,6 +39,30 @@ class ServiciosTest extends SoportePostgres {
         assertThrows(NegocioException.class,()->servicios.inmuebles.editar(otro.getId(),inmueble.getId(),"X","Cali","Calle","Descripción",2,new BigDecimal("100")));
         assertThrows(NegocioException.class,()->servicios.inmuebles.desactivar(otro.getId(),inmueble.getId()));
     }
+    @Test void ambosRolesRespetanLaReservaHastaSuCancelacion() {
+        Reserva r = nuevaReserva(HOY.plusDays(2), HOY.plusDays(4));
+        assertThrows(NegocioException.class, () -> servicios.inmuebles.desactivar(propietario.getId(), inmueble.getId()));
+        assertThrows(NegocioException.class, () -> servicios.administracion.desactivarInmueble(admin.getId(), inmueble.getId()));
+        assertEquals(EstadoInmueble.PUBLICADO, servicios.inmuebles.obtenerPublicado(inmueble.getId()).getEstado());
+        assertEquals(EstadoReserva.CONFIRMADA, reservas.buscarPorId(r.getId()).orElseThrow().getEstado());
+        servicios.reservas.cancelar(cliente.getId(), r.getId());
+        servicios.administracion.desactivarInmueble(admin.getId(), inmueble.getId());
+        assertThrows(NegocioException.class, () -> nuevaReserva(HOY.plusDays(2), HOY.plusDays(4)));
+        assertEquals(EstadoReserva.CANCELADA, reservas.buscarPorId(r.getId()).orElseThrow().getEstado());
+    }
+    @Test void pendienteSoloProtegeElInmuebleDuranteSuPlazoDePago() {
+        Reserva r = reservaFutura();
+        assertThrows(NegocioException.class, () -> servicios.inmuebles.desactivar(propietario.getId(), inmueble.getId()));
+        Servicios alVencer = conReloj(Clock.fixed(r.getExpiraEn().toInstant(), ZONA));
+        alVencer.inmuebles.desactivar(propietario.getId(), inmueble.getId());
+        assertEquals(EstadoInmueble.INACTIVO, inmuebles.buscarPorId(inmueble.getId()).orElseThrow().getEstado());
+    }
+    @Test void pendienteAnteriorAlRetiroNoAdmiteCobro() {
+        Reserva r = reservaFutura();
+        inmuebles.desactivar(inmueble.getId());
+        assertThrows(NegocioException.class, () -> servicios.pagos.registrar(cliente.getId(), r.getId(), MetodoPago.TRANSFERENCIA, null));
+        assertTrue(pagos.listarPorReserva(r.getId()).isEmpty());
+    }
     @Test void precioYCapacidadDebenSerPositivos() {
         assertThrows(NegocioException.class,()->servicios.inmuebles.publicar(propietario.getId(),"X","Cali","Calle","Desc",0,new BigDecimal("100")));
         assertThrows(NegocioException.class,()->servicios.inmuebles.publicar(propietario.getId(),"X","Cali","Calle","Desc",2,BigDecimal.ZERO));

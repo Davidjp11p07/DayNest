@@ -42,14 +42,14 @@ class ContenidoInmuebleTest extends SoportePostgres {
     @Test void disponibilidadNoPublicaInmueblesInactivosNiRangosTerminados() {
         reservaPagada();
         assertTrue(contenido.fechasNoDisponibles(inmueble.getId(), HOY.plusDays(13)).isEmpty());
-        servicios.inmuebles.desactivar(propietario.getId(), inmueble.getId());
+        inmuebles.desactivar(inmueble.getId());
         assertTrue(contenido.fechasNoDisponibles(inmueble.getId(), HOY).isEmpty());
     }
 
     @Test void calendarioPropioConservaOcupacionesDelInactivoSinMostrarLasAUnAjeno() {
         reservaPagada();
         assertEquals("RESERVA",contenido.ocupacionesCalendario(inmueble.getId(),propietario.getId(),HOY).get(0).tipo());
-        servicios.inmuebles.desactivar(propietario.getId(),inmueble.getId());
+        inmuebles.desactivar(inmueble.getId());
         assertTrue(contenido.ocupacionesCalendario(inmueble.getId(),null,HOY).isEmpty());
         assertTrue(contenido.ocupacionesCalendario(inmueble.getId(),cliente.getId(),HOY).isEmpty());
         assertEquals(1,contenido.ocupacionesCalendario(inmueble.getId(),propietario.getId(),HOY).size());
