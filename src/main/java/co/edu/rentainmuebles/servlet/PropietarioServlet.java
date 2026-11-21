@@ -50,7 +50,7 @@ public final class PropietarioServlet extends HttpServlet {
                 String descripcion=Web.opcional(r,"descripcionFoto");if(descripcion==null)descripcion="";if(descripcion.length()>160)throw new NegocioException("La descripción admite hasta 160 caracteres.");
                 contenido().agregarFoto(usuario,id,tipo,mime,descripcion,datos);Web.flash(r,"exito","Foto agregada al inmueble.");Web.redirect(r,p,"/propietario/editar?id="+id);return;
             }
-            if("/foto/eliminar".equals(ruta)) {long id=Web.id(r,"id"),foto=Web.id(r,"fotoId");contenido().eliminarFoto(usuario,foto);Web.flash(r,"exito","Foto eliminada.");Web.redirect(r,p,"/propietario/editar?id="+id);return;}
+            if("/foto/eliminar".equals(ruta)) {long id=Web.id(r,"id"),foto=Web.id(r,"fotoId");contenido().eliminarFoto(usuario,id,foto);Web.flash(r,"exito","Foto eliminada.");Web.redirect(r,p,"/propietario/editar?id="+id);return;}
             if("/calificar".equals(ruta)){contenido().calificar(usuario,"PROPIETARIO",Web.id(r,"id"),Web.requerido(r,"puntuacion"),Web.opcional(r,"comentario")==null?"":Web.opcional(r,"comentario"));Web.flash(r,"exito","Gracias por calificar al huésped.");Web.redirect(r,p,"/propietario/reservas");return;}
             if("/bloquear".equals(ruta)) { new co.edu.rentainmuebles.service.BloqueoService().crear(usuario,Web.id(r,"inmuebleId"),Web.fecha(r,"entrada"),Web.fecha(r,"salida"),Web.texto(r,"motivo")); Web.flash(r,"exito","Bloqueo registrado."); Web.redirect(r,p,destinoBloqueos(r)); return; }
             else if("/liberar".equals(ruta)) { new co.edu.rentainmuebles.service.BloqueoService().liberar(usuario,Web.id(r,"id")); Web.flash(r,"exito","Fechas liberadas."); Web.redirect(r,p,destinoBloqueos(r)); return; }
@@ -80,11 +80,13 @@ public final class PropietarioServlet extends HttpServlet {
         return "/propietario/calendario?id="+id+(mes==null?"":"&mes="+java.net.URLEncoder.encode(mes,java.nio.charset.StandardCharsets.UTF_8));
     }
     private static co.edu.rentainmuebles.service.ContenidoInmuebleService contenido(){return new co.edu.rentainmuebles.service.ContenidoInmuebleService();}
-    private static String tipoImagen(byte[] datos) throws IOException {
+    static String tipoImagen(byte[] datos) {
         try(ImageInputStream stream=ImageIO.createImageInputStream(new java.io.ByteArrayInputStream(datos))) {
             if(stream==null)throw new NegocioException("El archivo seleccionado no es una imagen válida.");
             var lectores=ImageIO.getImageReaders(stream);if(!lectores.hasNext())throw new NegocioException("Solo se admiten imágenes JPEG o PNG.");
             ImageReader lector=lectores.next();try{lector.setInput(stream,true,true);String formato=lector.getFormatName().toLowerCase(Locale.ROOT);int w=lector.getWidth(0),h=lector.getHeight(0);if(w<1||h<1||(long)w*h>25_000_000L)throw new NegocioException("La imagen tiene dimensiones demasiado grandes.");if(formato.equals("jpeg")||formato.equals("jpg"))return "image/jpeg";if(formato.equals("png"))return "image/png";throw new NegocioException("Solo se admiten imágenes JPEG o PNG.");}finally{lector.dispose();}
+        } catch (IOException e) {
+            throw new NegocioException("No se pudo leer la imagen seleccionada.", e);
         }
     }
 }

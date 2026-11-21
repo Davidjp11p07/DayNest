@@ -76,7 +76,19 @@ public final class ContenidoInmuebleDaoJdbc implements ContenidoInmuebleDao {
     public List<FotoInmueble> fotosPropias(long propietario,long id){return con(c->{try(PreparedStatement s=c.prepareStatement("SELECT f.id_foto,f.tipo,f.mime,f.descripcion FROM inmueble_foto f JOIN inmueble_operativo i USING(id_inmueble) WHERE f.id_inmueble=? AND i.id_propietario=? ORDER BY f.id_foto")){s.setLong(1,id);s.setLong(2,propietario);try(ResultSet r=s.executeQuery()){List<FotoInmueble> out=new ArrayList<>();while(r.next())out.add(new FotoInmueble(r.getLong(1),r.getString(2),r.getString(3),r.getString(4)));return out;}}});}
     public Optional<Imagen> imagenPublica(long id){return con(c->{try(PreparedStatement s=c.prepareStatement("SELECT f.mime,f.datos FROM inmueble_foto f JOIN inmueble i USING(id_inmueble) WHERE f.id_foto=? AND i.estado='PUBLICADO'")){s.setLong(1,id);try(ResultSet r=s.executeQuery()){return r.next()?Optional.of(new Imagen(r.getString(1),r.getBytes(2))):Optional.empty();}}});}
     public Optional<Imagen> imagenPropia(long propietario,long id){return con(c->{try(PreparedStatement s=c.prepareStatement("SELECT f.mime,f.datos FROM inmueble_foto f JOIN inmueble_operativo i USING(id_inmueble) WHERE f.id_foto=? AND i.id_propietario=?")){s.setLong(1,id);s.setLong(2,propietario);try(ResultSet r=s.executeQuery()){return r.next()?Optional.of(new Imagen(r.getString(1),r.getBytes(2))):Optional.empty();}}});}
-    public void eliminarFoto(long propietario,long id){con(c->{try(PreparedStatement s=c.prepareStatement("DELETE FROM inmueble_foto f USING inmueble_operativo i WHERE f.id_inmueble=i.id_inmueble AND i.id_propietario=? AND f.id_foto=?")){s.setLong(1,propietario);s.setLong(2,id);if(s.executeUpdate()!=1)throw new DaoException("La foto no existe o no pertenece a tus inmuebles.");return null;}});}
+    public void eliminarFoto(long propietario, long inmueble, long foto) {
+        con(c -> {
+            String sql = "DELETE FROM inmueble_foto f USING inmueble_operativo i WHERE f.id_inmueble=i.id_inmueble "
+                    + "AND i.id_propietario=? AND i.id_inmueble=? AND f.id_foto=?";
+            try (PreparedStatement s = c.prepareStatement(sql)) {
+                s.setLong(1, propietario);
+                s.setLong(2, inmueble);
+                s.setLong(3, foto);
+                if (s.executeUpdate() != 1) throw new DaoException("La foto no pertenece al inmueble seleccionado.");
+                return null;
+            }
+        });
+    }
     public void calificar(long usuario,String rol,long reserva,int puntos,String comentario){
         if(!List.of("CLIENTE","PROPIETARIO").contains(rol)||puntos<1||puntos>5)throw new IllegalArgumentException("Calificación inválida.");
         String sql="INSERT INTO calificacion_reserva(id_ocupacion,rol_autor,puntuacion,comentario) SELECT r.id_ocupacion,?,?,? FROM renta r JOIN ocupacion o USING(id_ocupacion) WHERE r.id_ocupacion=? AND r.estado='FINALIZADA' AND o.fecha_fin<=CURRENT_DATE AND ((?='CLIENTE' AND r.id_cl=?) OR (?='PROPIETARIO' AND r.id_p=?)) ON CONFLICT(id_ocupacion,rol_autor) DO NOTHING";

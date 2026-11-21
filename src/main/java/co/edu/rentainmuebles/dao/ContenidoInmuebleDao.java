@@ -14,7 +14,7 @@ public interface ContenidoInmuebleDao {
     List<FotoInmueble> fotosPropias(long propietarioId, long inmuebleId);
     Optional<Imagen> imagenPublica(long fotoId);
     Optional<Imagen> imagenPropia(long propietarioId, long fotoId);
-    void eliminarFoto(long propietarioId, long fotoId);
+    void eliminarFoto(long propietarioId, long inmuebleId, long fotoId);
     void calificar(long usuarioId, String rol, long reservaId, int puntuacion, String comentario);
     boolean yaCalifico(long usuarioId, String rol, long reservaId);
     List<Calificacion> calificacionesDelCliente(long clienteId);

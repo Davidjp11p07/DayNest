@@ -60,8 +60,12 @@ class ContenidoInmuebleTest extends SoportePostgres {
         assertArrayEquals(imagen(), contenido.imagenPublica(id).orElseThrow().datos());
         assertEquals(1, contenido.fotosPublicas(inmueble.getId()).size());
         assertTrue(contenido.imagenPropia(cliente.getId(), id).isEmpty());
-        assertThrows(NegocioException.class, () -> contenido.eliminarFoto(cliente.getId(), id));
-        contenido.eliminarFoto(propietario.getId(), id);
+        assertThrows(NegocioException.class, () -> contenido.eliminarFoto(cliente.getId(), inmueble.getId(), id));
+        Inmueble otro = servicios.inmuebles.publicar(propietario.getId(), "Otra casa", "Cali",
+                "Calle 20", "Casa de prueba", 2, inmueble.getPrecioPorNoche());
+        assertThrows(NegocioException.class, () -> contenido.eliminarFoto(propietario.getId(), otro.getId(), id));
+        assertTrue(contenido.imagenPublica(id).isPresent());
+        contenido.eliminarFoto(propietario.getId(), inmueble.getId(), id);
         assertTrue(contenido.imagenPublica(id).isEmpty());
     }
 

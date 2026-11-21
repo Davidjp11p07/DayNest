@@ -30,8 +30,8 @@ public final class ContenidoInmuebleService implements ContenidoInmuebleDao {
         return ejecutar(() -> dao.agregarFoto(propietario, inmueble, tipo, mime, texto, datos));
     }
 
-    public void eliminarFoto(long propietario, long foto) {
-        ejecutar(() -> { dao.eliminarFoto(propietario, foto); return null; });
+    public void eliminarFoto(long propietario, long inmueble, long foto) {
+        ejecutar(() -> { dao.eliminarFoto(propietario, inmueble, foto); return null; });
     }
 
     public void calificar(long usuario, String rol, long reserva, int puntos, String comentario) {
